@@ -7,7 +7,7 @@
 
 Like in markdown.
 
-```raw
+```mdbg
 # H1
 ## H2
 ### H3
@@ -18,40 +18,36 @@ Like in markdown.
 
 ### Emphasis
 
-Small changes from markdown.
 Transaltions :
 
 ##### Bold
 ```markdown
 Bold : this is *bold*
 ```
-```raw
+```mdbg
 Bold : this is *bold*
 ```
 
-##### Underline
+##### Underscore
 
-```markdown
-Underline : this is __underline__
-```
-```raw
+```mdbg
 Underline : this is _underline_
 ```
 
-Combined :
+##### Italic
 
 ```markdown
-Combines : this is *bold __and underscore__*
+Italic : This is __italic__
 ```
-```raw
-Combines : this is *bold _and underscore_*
+```
+Italic : This is /italic/
 ```
 
 ##### Scratch
 ```markdown
 Scratch : this is ~~scratch~~
 ```
-```raw
+```mdbg
 Scratch : this is ~scratch~
 ```
 
@@ -61,7 +57,7 @@ Small changes.
 
 This is a list :
 
-```raw
+```mdbg
 Neutral text :
   first item
   second item
@@ -71,7 +67,7 @@ Neutral text :
 ```
 
 and an enumerated list
-```raw
+```mdbg
   1. first item
   2. second item
     1. first second item
@@ -81,7 +77,7 @@ and an enumerated list
 
 ### Links
 
-```raw
+```mdbg
 [text for link](https://www.google.com)
 
 [text for link](https://www.google.com "title for link")
@@ -95,16 +91,26 @@ Like Markdown.
 
 Like Markdown, without 2nd line.
 
-```raw
+```mdbg
 | C11 | C21 | C31 |
 | C21 | C22 | C32 |
 | C31 | C32 | C33 |
 ```
 
 In Markdown :
-```raw
+```markdown
 | C11 | C21 | C31 |
 | --- | --- | --- |
 | C21 | C22 | C32 |
 | C31 | C32 | C33 |
+```
+
+## New !
+
+### Trees :
+
+#### Basic binary tree
+
+```mdbg
+![TREE R $\times$ N $+$ F $x$ F $1$ N $\times$ F $3$ N $+$ F $y$ F $2$]!
 ```
