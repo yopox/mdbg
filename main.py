@@ -200,11 +200,7 @@ def tree_parse(matchObj):
     # Possible options :
     #   - c : center
     option = matchObj.group('option')
-    __nodes = matchObj.group('tree').split()
-    if len(__nodes) % 2:
-        return ""
-    nodes = [[__nodes[2 * i], __nodes[2 * i + 1]]
-             for i in range(len(__nodes) >> 1)]
+    nodes = [list(x) for x in re.findall(r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
     out_str = "\n\\begin{center}" if option == 'c' else ""
     out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
@@ -217,7 +213,8 @@ def tree_parse(matchObj):
     def get_tree():
         def aux(i, depth):
             if nodes[i][0] == 'F':
-                return ('"' + nodes[i][1] + '"', i + 1)
+                f = nodes[i][1]
+                return ('"' + (f if f != '()' else '') + '"', i + 1)
             else:
                 (g, r1) = aux(i + 1, depth + 1)
                 (d, r2) = aux(r1, depth + 1)
@@ -237,7 +234,7 @@ def ntree_parse(matchObj):
     tree = matchObj.group('tree')
     out_str = "\n\\begin{center}" if option == 'c' else ""
     out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
-    out_str += tree + "\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
+    out_str += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
     return out_str
 
 
