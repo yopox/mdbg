@@ -122,7 +122,7 @@ Description :
   - Leave : `L`
 
 ```mdbg
-![TREE R root N a node L a leave L an other leave N an other node L a leave again ! N a node again ! L  i don't know what to say L the last leave ]!
+![TREE R root N "a node" L "a leave" L "an other leave" N "an other node" L "a leave again" ! N "a node again" ! L  OneWord L "the last leave" ]!
 ```
 
 ##### Non binary trees
