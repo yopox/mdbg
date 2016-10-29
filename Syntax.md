@@ -16,11 +16,24 @@ Like in markdown.
 ###### H6
 ```
 
+#### Non numbered sections
+
+For non enuerated section :
+```mdbg
+#* H1
+##* H2
+###* H3
+####* H4
+#####* H5
+######* H6
+```
+
+
 ### Emphasis
 
 Transaltions :
 
-##### Bold
+#### Bold
 In markdown :
 ```no-highlight
 Bold : this is *bold*
@@ -29,13 +42,13 @@ Bold : this is *bold*
 Bold : this is *bold*
 ```
 
-##### Underscore
+#### Underscore
 
 ```mdbg
 Underline : this is _underline_
 ```
 
-##### Italic
+#### Italic
 In markdown :
 
 ```no-highlight
@@ -45,7 +58,7 @@ Italic : This is __italic__
 Italic : This is %italic%
 ```
 
-##### Scratch
+#### Scratch
 In markdown :
 
 ```no-highlight
@@ -102,6 +115,7 @@ Like Markdown, without 2nd line.
 ```
 
 In Markdown :
+
 ```no-highlight
 | C11 | C21 | C31 |
 | --- | --- | --- |
@@ -116,27 +130,27 @@ In Markdown :
 #### Basic binary tree
 
 Description :
-  - Command : `![TREE ]!`
-  - Root : `R`
-  - Node : `N`
-  - Leave : `L`
+  - Command : `![TREE]!`
+  - Root : `R "text"`
+  - Node : `N "text"`
+  - Leave : `L "text"`
 
 ```mdbg
-![TREE R root N "a node" L "a leave" L "an other leave" N "an other node" L "a leave again" ! N "a node again" ! L  OneWord L "the last leave" ]!
+![TREE R "root" N "a node" L "a leave" L "an other leave" N "an other node" L "a leave again !" N "a node again !" L  "OneWord" L "the last leave"]!
 ```
 
 ##### Non binary trees
 
-Command : `![nTREE ]!`
+Command : `![nTREE]!`
 
 ```mdbg
-![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!
+![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
 
 ##### Centering
 
-Command : `![c-TREE ]!`
+Command : `![c-TREE]!`
 
 ```mdbg
-![c-nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!
+![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
