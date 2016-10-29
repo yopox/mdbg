@@ -21,7 +21,8 @@ Like in markdown.
 Transaltions :
 
 ##### Bold
-```markdown
+In markdown :
+```no-highlight
 Bold : this is *bold*
 ```
 ```mdbg
@@ -35,8 +36,9 @@ Underline : this is _underline_
 ```
 
 ##### Italic
+In markdown :
 
-```markdown
+```no-highlight
 Italic : This is __italic__
 ```
 ```mdbg
@@ -44,7 +46,9 @@ Italic : This is %italic%
 ```
 
 ##### Scratch
-```markdown
+In markdown :
+
+```no-highlight
 Scratch : this is ~~scratch~~
 ```
 ```mdbg
@@ -98,7 +102,7 @@ Like Markdown, without 2nd line.
 ```
 
 In Markdown :
-```markdown
+```no-highlight
 | C11 | C21 | C31 |
 | --- | --- | --- |
 | C21 | C22 | C32 |
