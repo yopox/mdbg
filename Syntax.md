@@ -39,8 +39,8 @@ Underline : this is _underline_
 ```markdown
 Italic : This is __italic__
 ```
-```
-Italic : This is /italic/
+```mdbg
+Italic : This is %italic%
 ```
 
 ##### Scratch
@@ -111,6 +111,28 @@ In Markdown :
 
 #### Basic binary tree
 
+Description :
+  - Command : `![TREE ]!`
+  - Root : `R`
+  - Node : `N`
+  - Leave : `L`
+
 ```mdbg
-![TREE R $\times$ N $+$ F $x$ F $1$ N $\times$ F $3$ N $+$ F $y$ F $2$]!
+![TREE R root N a node L a leave L an other leave N an other node L a leave again ! N a node again ! L  i don't know what to say L the last leave ]!
+```
+
+##### Non binary trees
+
+Command : `![nTREE ]!`
+
+```mdbg
+![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!
+```
+
+##### Centering
+
+Command : `![c-TREE ]!`
+
+```mdbg
+![c-nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!
 ```
