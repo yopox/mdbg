@@ -41,9 +41,6 @@ Options :
     -T : shortcut for --tableofcontents
     --tableofcontents : if a table of contents is needed ('on' by default)
 
-    -m : shortcut for --minted ('off' by default) (/!\ HAS NOT BEEN IMPLEMENTED YET)
-    --minted : if the code should be colored with minted (requires Pygments and --shell-escape option to compile)
-
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -55,8 +52,7 @@ ARGV = {
     'input': '',
     'documentclass': 'report',
     'tableofcontents': True,
-    'help': False,
-    'minted': False,
+    'help': False
 }
 
 
@@ -86,9 +82,7 @@ def arg_treatment():
         '-h': 'help',
         '--help': 'help',
         '-T': 'tableofcontents',
-        '--tableofcontents': 'tableofcontents',
-        '-m': 'minted',
-        '--minted': 'minted'
+        '--tableofcontents': 'tableofcontents'
     }
 
     # options treatment
@@ -99,8 +93,7 @@ def arg_treatment():
             ARGV[options_bools[sys.argv[i]]] = True
 
     if ARGV['output'] == '':
-        ARGV['output'] = re.sub(
-            r"^(?P<name>(?:(?!\.md$).)+)(?:\.md$)?", r"\g<name>.tex", ARGV['input'])
+        ARGV['output'] = re.sub(r"^(?P<name>(?:(?!\.md$).)+)(?:\.md$)?", r"\g<name>.tex", ARGV['input'])
 
 # Parsing functions
 
@@ -517,7 +510,7 @@ def inline_parse(line):
 
     # If we arrive here, that's because 'line' is an atom.
     # Congratulations !
-    # Now we are going to parse it.
+    # We are now parsing it
 
     if re.search(r"`(?:(?!`).*)`", line):
     # If line is a block of inline code
@@ -559,7 +552,7 @@ def inline_parse(line):
     # Removing decoration
     line = re.sub(r"\* \* \*", '', line)
 
-    # Puting a \noindent if line begins with '!'
+    # Putting a \noindent if line begins with '!'
     line = re.sub(r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", r'\\noindent\n\g<remainder>', line)
 
     # Replacing x by \x when x is a reserved character in LaTeX
@@ -581,7 +574,6 @@ def inline_parse(line):
     return line
 
 # Main
-
 
 def main():
     global ARGV, doc
