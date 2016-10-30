@@ -175,4 +175,4 @@ Command : `![c-TREE]!` or `![c-nTREE]!`
 
 Begining a line with a `!` will add a `\noindent` in the LaTeX generated file : usefull to prevent indented lines before an itemize or indented short lines after a section definition.
 
-Skipping a line will add a `\\` or `\newline` in the LaTeX generated file.
+A line break will add a `\\` or `\newline` in the LaTeX generated file.
