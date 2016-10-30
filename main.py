@@ -341,7 +341,7 @@ def merge_inline_code(matchObj, inline_codes):
 def merge_block_code(matchObj, block_codes):
     return block_codes[int(matchObj.group('i')) - 1]
 
-
+# This function will disapeare
 def parse(paragraph):
     # Parsing blocks of code
     # Blocks are "encrypted" in the string and stocked in a list. Everything
@@ -486,6 +486,118 @@ def parse(paragraph):
         r"&é\(\]°\(\-è\*@\|\{\)(?P<i>[0-9]+)&é\(\]°\(\-è\*@\|\{\)", lambda x: merge_block_code(x, block_codes), paragraph)
 
     return paragraph
+
+# Parsing recursively (will replace parse function)
+# This way of parsing will allow to do more things
+# (and it is nicer)
+
+def block_parse(block):
+    # A block can be several blocks itself
+    # Blocks can be :
+    #   - a paragraph
+    #   - block code
+    #   - itemize/enumerate
+    #   - block quote
+    #   - a table
+    #   - a latex \[ \]
+    #   - something between two of the blocks above
+    # 'block' is going to be splitted into sub-blocks that will be treated recursively
+    # A block is some kind of node in a tree
+    # A leaf is a piece of inline text or an block "elementary brick"
+
+    # Let's find the sub-blocks
+
+    out = ''
+    if re.search(r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```", block):
+    # If we find a block of code
+        sub_blocks = re.split(r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)", block)
+        if sub_blocks != ['', block, '']:
+        # If this block is not an atom we have to re-split it
+            for sub_block in sub_blocks:
+                out += block_parse(sub_block)
+            return out
+    else:
+        if re.search(r"(?:^|(?<=\n))#+(?= )", block):
+        # If we find a title we split into different paragraphs
+            sub_blocks = re.split(r"(?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*", block)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+        if re.search(r"(?:^|(?<=\n))    -"):
+        # If we find an itemize
+            sub_blocks = re.split(r"((?:^|(?<=\n))(?:    |\t)(?![0-9]+\. )(?:.|\n(?!\n))*)+", blocks)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+        if re.search(r"(?:^|(?<=\n))    [0-9]+\. "):
+        # If we find an enumerate
+            sub_blocks = re.split(r"((?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+", blocks)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+        if re.search(r"(?:^|(?<=\n))\|"):
+        # If we find a table
+            sub_blocks = re.split(r"hadrien plz", blocks)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+        if re.search(r"(?:^|(?<=\n))> ", blocks):
+        # If we find a block quotation
+            sub_blocks = re.split("(?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?", blocks)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+        if re.search(r"\\\[(?:.|\n)*\\\]", blocks):
+        # If we find a block LaTeX part
+            sub_blocks = re.split(r"\\\[(?:.|\n)*?\\\]", blocks)
+            if sub_blocks != ['', block, '']:
+            # If this block is not an atom we have to re-split it
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+
+    # Now we know that 'block' is an elementary brick, let's parse it
+
+    if re.search(r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```", block):
+    # If the block is a block of code
+        return re.sub(r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```", block_parse_code, block)
+
+    if re.search(r"(?:^|(?<=\n))#+(?= )", block):
+    # If the block is a 'title + paragraph' we parse it as it should be
+        return re.sub(r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)", title_parse, block)
+
+    if re.search(r"(?:^|(?<=\n))    -"):
+    # If the block is an itemize
+        return re.sub(r"(?:.|\n)*", itemize_parse, block)
+
+    if re.search(r"(?:^|(?<=\n))    [0-9]+\. "):
+    # If the block is an enumerate
+        return re.sub(r"(?:.|\n)*", enumerate_parse, block)
+
+    if re.search(r"hadrien plz"):
+    # If the block is a table
+        return re.sub(r"(?:!!(?P<option>.*))? hadrien plz", table_parse, block)
+
+    if re.search(r"(?:^|(?<=\n))> ", blocks):
+    # If the block is a quotation
+        return re.sub("(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n(?:\((?P<reference>.+)\))?", quote_parse, blocks)
+    
+    if re.search(r"\\\[(?:.|\n)*\\\]", blocks):
+    # If the block is an block LaTeX part
+        return block
+
+    # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
+    return inline_parse(block)
 
 # Main
 
