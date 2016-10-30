@@ -41,10 +41,7 @@ Options :
     -T : shortcut for --tableofcontents
     --tableofcontents : if a table of contents is needed ('on' by default)
 
-    -m : shortcut for --minted ('off' by default) (/!\ HAS NOT BEEN IMPLEMENTED YET)
-    --minted : if the code should be colored with minted (requires Pygments and --shell-escape option to compile)
-
-Go to https://github.com/YoPox/mdConvert/ for more information
+Go to https://github.com/YoPox/mdbg/ for more information
 """
 
 # Managing arguments
@@ -55,8 +52,7 @@ ARGV = {
     'input': '',
     'documentclass': 'report',
     'tableofcontents': True,
-    'help': False,
-    'minted': False,
+    'help': False
 }
 
 
@@ -86,9 +82,7 @@ def arg_treatment():
         '-h': 'help',
         '--help': 'help',
         '-T': 'tableofcontents',
-        '--tableofcontents': 'tableofcontents',
-        '-m': 'minted',
-        '--minted': 'minted'
+        '--tableofcontents': 'tableofcontents'
     }
 
     # options treatment
