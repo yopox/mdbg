@@ -31,7 +31,7 @@ For non enuerated section :
 
 ### Emphasis
 
-Transaltions :
+Translations :
 
 #### Bold
 In markdown :
@@ -70,17 +70,17 @@ Scratch : this is ~scratch~
 
 ### Lists
 
-Small changes.
+Small change : you'll have to indent every item including the first.
 
 This is a list :
 
 ```mdbg
 Neutral text :
-  first item
-  second item
-    first second item
-    second second item
-  third item
+  - first item
+  - second item
+    - first second item
+    - second second item
+  - third item
 ```
 
 and an enumerated list
@@ -91,6 +91,8 @@ and an enumerated list
     2. second second item
   3. third item
 ```
+
+The identations must be whether four spaces or a tabulation.
 
 ### Links
 
@@ -123,9 +125,20 @@ In Markdown :
 | C31 | C32 | C33 |
 ```
 
+You can't chose text alignment for every cell but you can chose it for every row by adding the command `!!tab` followed by the alignments.
+
+For example one possible table would be :
+
+```mdbg
+!!tab r c l
+| C11 | C21 | C31 |
+| C21 | C22 | C32 |
+| C31 | C32 | C33 |
+```
+
 ## New !
 
-### Trees :
+### Trees
 
 #### Basic binary tree
 
@@ -139,7 +152,9 @@ Description :
 ![TREE R "root" N "a node" L "a leave" L "an other leave" N "an other node" L "a leave again !" N "a node again !" L  "OneWord" L "the last leave"]!
 ```
 
-##### Non binary trees
+If you want to draw an non strictly binary tree, you can write `L ()` for a empty leaf
+
+#### Non binary trees
 
 Command : `![nTREE]!`
 
@@ -147,10 +162,17 @@ Command : `![nTREE]!`
 ![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
 
-##### Centering
+#### Centering
 
-Command : `![c-TREE]!`
+You can center a tree by adding the option `c` next to the command opener :
+Command : `![c-TREE]!` or `![c-nTREE]!`
 
 ```mdbg
-![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
+![c-nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
+
+### Miscellaneous
+
+Begining a line with a `!` will add a `\noindent` in the LaTeX generated file : usefull to prevent indented lines before an itemize or indented short lines after a section definition.
+
+Skipping a line will add a `\\` or `\newline` in the LaTeX generated file.
