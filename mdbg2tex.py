@@ -150,7 +150,7 @@ def tree_parse(matchObj):
         if r != l:
             return ""
         else:
-            return re.sub("\n ?\n", "\n", ans) + "};\n"
+            return re.sub(r"\n ?\n", r"\n", ans) + "};\n"
 
     out += get_tree() + "\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
     return out
@@ -169,7 +169,7 @@ def ntree_parse(matchObj):
 
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
-    quotes = filter(lambda x: x != '' and x != '\n', re.split("(?:^|\n)> (.*)", quotes))
+    quotes = list(filter(lambda x: x != '' and x != '\n', re.split(r"(?:^|\n)> (.*)", quotes)))
     try:
         # For quotations with a reference
         reference = matchObj.group('reference')
@@ -192,18 +192,19 @@ def itemize_parse(matchObj):
     # Removing left indentation
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
 
-    # Splitting items
-    items = re.split(r"((?:^|(?<=\n))- (?:.|\n(?!-))*)", itemize)
+    # Splitting items and removing '-' symbol from each item
+    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize)
 
     # Removing '' and '\n' from items
-    itmes = filter(lambda x: x != '' and x != '\n', items)
+    items = list(filter(lambda x: x != '' and x != '\n', items))
+
 
     # Generate out string
     out = "\\begin{itemize}\n"
 
     # Adding parsed items
     for item in items:
-        out += r"\item " + block_parse(item) + '\n'
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
     out += "\\end{itemize}\n"
 
     return out
@@ -216,20 +217,21 @@ def enumerate_parse(matchObj):
     # Removing left indentation
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
 
-    # Splitting items
-    items = re.split(r"((?:^|(?<=\n))[0-9]+\. (?:.|\n(?!-))*)", itemize)
+    # Splitting items and removing '-' symbol from each item
+    items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", itemize)
 
     # Removing '' and '\n' from items
-    itmes = filter(lambda x: x != '' and x != '\n', items)
+    items = list(filter(lambda x: x != '' and x != '\n', items))
+
 
     # Generate out string
     out = "\\begin{enumerate}\n"
 
     # Adding parsed items
     for item in items:
-        out += r"\item " + block_parse(item) + '\n'
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
     out += "\\end{enumerate}\n"
-    
+
     return out
 
 
@@ -253,24 +255,31 @@ def table_parse(matchObj):
         if len(option) == 1:
             out += '{' + ('|' + option) * n + '|}'
         else:
-            out += '{' + ('|' + 'l') * n + '|}'
+            options = option.split()
+            out += '{'
+            for op in options:
+                out += '|' + option
+            out += '|}'
+    else:
+        out += '{' + ('|' + 'l') * n + '|}'
 
     out += '\n'
 
     # Filling the table
-    for line in filter(lambda x: x != '' and x != '\n', re.findall("(?:^|(?<=\n)).*")):
+    for line in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?:^|(?<=\n)).*", table))):
     # For each line of the table
-        for element in filter(lambda x: x != '' and x != '\n', re.findall(r"(?<=\| )([^\|]*)(?= \|)", line)):
+        out += "\\hline\n"
+        for element in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?<=\| )([^\|]*)(?= \|)", line))):
         # For each element of the line
             # Add the parsed element
-            out += "\\hline\n" + block_parse(element) + '&'
+            out += block_parse(element) + '&'
         out = out[0:-1] + '\\\\\n'
     out = out[0:-3] + '\n\\hline\n\\end{tabular}\n\\end{center}\n'
 
     return out
 
 def title_parse(matchObj):
-    level = matchObj.group('level')
+    level = len(matchObj.group('level'))
     title = matchObj.group('title')
     paragraph = matchObj.group('paragraph')
     out = ''
@@ -304,8 +313,7 @@ def block_parse(block):
     # 'block' is going to be splitted into sub-blocks that will be treated recursively
     # A block is some kind of node in a tree
     # A leaf is a piece of inline text or an block "elementary brick"
-    print("NEW BLOCK")
-    print(repr(block))
+
     # Let's find the sub-blocks
     if re.search(r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```", block):
     # If we find a block of code
@@ -338,45 +346,45 @@ def block_parse(block):
     # Now we know that there is no block code and no block LaTeX, we can parse blindly.
         if re.search(r"(?:^|(?<=\n))#+(?= )", block):
         # If we find a title we split into different paragraphs
-            sub_blocks = re.split(r"(?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*", block)
+            sub_blocks = re.split(r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)", block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-        if re.search(r"(?:^|(?<=\n))    -", block):
+        elif re.search(r"(?:^|(?<=\n))    -", block):
         # If we find an itemize
-            sub_blocks = re.split(r"((?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+", block)
+            sub_blocks = re.split(r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)", block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-        if re.search(r"(?:^|(?<=\n))    [0-9]+\. ", block):
+        elif re.search(r"(?:^|(?<=\n))    [0-9]+\. ", block):
         # If we find an enumerate
-            sub_blocks = re.split(r"((?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+", block)
+            sub_blocks = re.split(r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)", block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-        if re.search(r"(?:^|(?<=\n))\|", block):
+        elif re.search(r"(?:^|(?<=\n))\|", block):
         # If we find a table
-            sub_blocks = re.split(r"(?:!!(?P<option>.*)\n)?((?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", block)
+            sub_blocks = re.split(r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-        if re.search(r"(?:^|(?<=\n))> ", block):
+        elif re.search(r"(?:^|(?<=\n))> ", block):
         # If we find a block quotation
-            sub_blocks = re.split("(?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?", block)
+            sub_blocks = re.split(r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)", block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-        if re.search(r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!", block):
+        elif re.search(r"!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!", block):
         # If we find a tree
             sub_blocks = re.split(r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)", block)
             if sub_blocks != ['', block, '']:
@@ -417,7 +425,7 @@ def block_parse(block):
 
     if re.search(r"(?:^|(?<=\n))> ", block):
     # If the block is a quotation
-        return re.sub("(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n(?:\((?P<reference>.+)\))?", quote_parse, block)
+        return re.sub(r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?", quote_parse, block)
 
     if re.search(r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)", block):
     # If the block is a tree
@@ -461,49 +469,49 @@ def inline_parse(line):
     # Indeed, block code musn't be parsed in the same way that other parts, and LaTeX musn't be parsed
     # at all as it is already LaTeX. That's why there are treated before other blocks.
     # Now we know that there is no block code and no block LaTeX, we can parse blindly.
-        if re.search(r"\"[^ ](?:(?!\").*)\"", line):
+        if re.search(r"\"(?! )[^\"]*\"", line):
         # If we find quotation delimiters we split
-            sub_lines = re.split(r"(\"[^ ](?:(?!\").*)\")", line)
+            sub_lines = re.split(r"(\"(?! )[^\"]*\")", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-        if re.search(r"'[^ ](?:(?!').*)'", line):
+        elif re.search(r"'(?! )[^'\n ]*'", line):
         # If we find quotation delimiters we split
-            sub_lines = re.split(r"('[^ ](?:(?!').*)')", line)
+            sub_lines = re.split(r"('(?! )[^'\n ]*')", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-        if re.search(r"\*[^ ](?:(?!\*).*)\*", line):
+        elif re.search(r"\*(?! )[^\*]*\*", line):
         # If we find bold delimiters we split
-            sub_lines = re.split(r"(\*[^ ](?:(?!\*).*)\*)", line)
+            sub_lines = re.split(r"(\*(?! )[^\*]*\*)", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-        if re.search(r"_[^ ](?:(?!_).*)_", line):
+        elif re.search(r"_(?! )[^_]*_", line):
         # If we find underline delimiters we split
-            sub_lines = re.split(r"(_[^ ](?:(?!_).*)_)", line)
+            sub_lines = re.split(r"(_(?! )[^_]*_)", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-        if re.search(r"%[^ ](?:(?!_).*)%", line):
+        elif re.search(r"%(?! )[^%]*%", line):
         # If we find italic delimiters we split
-            sub_lines = re.split(r"(%[^ ](?:(?!%).*)%)", line)
+            sub_lines = re.split(r"(%(?! )[^%]*%)", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-        if re.search(r"~[^ ](?:(?!~).*)~", line):
+        elif re.search(r"~(?! )[^~]*~", line):
         # If we find strikethrough delimiters we split
-            sub_lines = re.split(r"(~[^ ](?:(?!~).*)~)", line)
+            sub_lines = re.split(r"(~(?! )[^~]*~)", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
@@ -514,36 +522,43 @@ def inline_parse(line):
     # Congratulations !
     # Now we are going to parse it.
 
-    if re.search(r"`(?:(?!`).*)`", line):
+    if re.search(r"`(?P<inside>[^`\n]*)`", line):
     # If line is a block of inline code
-        inside = re.sub(r"`(?P<inside>(?!`).*)`", r"\g<inside>", line)
+        inside = re.sub(r"`(?P<inside>[^`\n]*)`", r"\g<inside>", line)
         return r'\verb`' + inline_parse(inside) + '`'
-    if re.search(r"\$(?:(?!\$).*)\$", line):
+
+    if re.search(r"\$[^\$\n]*\$", line):
     # If line is in LaTeX
         return line
-    if re.search(r"\"[^ ](?:(?!\").*)\"", line):
+
+    if re.search(r"\"(?! )(?P<inside>[^\"]*)\"", line):
     # If it is a quotation
-        inside = re.sub(r"\"[^ ](?P<inside>(?!\").*)\"", r"\g<inside>", line)
+        inside = re.sub(r"\"(?! )(?P<inside>[^\"]*)\"", r"\g<inside>", line)
         return r'\say{' + inline_parse(inside) + '}'
-    if re.search(r"'[^ ](?:(?!')*)'", line):
+
+    if re.search(r"'(?! )(?P<inside>[^'\n]*)'", line):
     # If it is a quotation
-        inside = re.sub(r"'[^ ](?P<inside>(?!').*)'", r"\g<inside>", line)
+        inside = re.sub(r"'(?! )(?P<inside>[^'\n]*)'", r"\g<inside>", line)
         return r'\say{' + inline_parse(inside) + '}'
-    if re.search(r"\*[^ ](?:(?!\*).*)\*", line):
+
+    if re.search(r"\*(?! )(?P<inside>[^\*]*)\*", line):
     # If it is a bold part
-        inside = re.sub(r"\*[^ ](?P<inside>(?!\*).*)\*", r"\g<inside>", line)
+        inside = re.sub(r"\*(?! )(?P<inside>[^\*]*)\*", r"\g<inside>", line)
         return r'\textbf{' + inline_parse(inside) + '}'
-    if re.search(r"_[^ ](?:(?!_).*)_", line):
+
+    if re.search(r"_(?! )(?P<inside>[^_]*)_", line):
     # If it is a underlined part
-        inside = re.sub(r"_[^ ](?P<inside>(?!_).*)_", r"\g<inside>", line)
+        inside = re.sub(r"_(?! )(?P<inside>[^_]*)_", r"\g<inside>", line)
         return r'\ul{' + inline_parse(inside) + '}'
-    if re.search(r"%[^ ](?:(?!%).*)%", line):
+
+    if re.search(r"%(?! )(?P<inside>[^%]*)%", line):
     # If it is a italic part
-        inside = re.sub(r"%[^ ](?P<inside>(?!%).*)%", r"\g<inside>", line)
+        inside = re.sub(r"%(?! )(?P<inside>[^%]*)%", r"\g<inside>", line)
         return r'\textit{' + inline_parse(inside) + '}'
-    if re.search(r"~[^ ](?:(?!~).*)~", line):
+
+    if re.search(r"~(?! )(?P<inside>[^~]*)~", line):
     # If it is a overstriked part
-        inside = re.sub(r"~[^ ](?P<inside>(?!~).*)~", r"\g<inside>", line)
+        inside = re.sub(r"~(?! )(?P<inside>[^~]*)~", r"\g<inside>", line)
         return r'\st{' + inline_parse(inside) + '}'
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
@@ -554,7 +569,7 @@ def inline_parse(line):
     # Removing decoration
     line = re.sub(r"\* \* \*", '', line)
 
-    # Puting a \noindent if line begins with '!'
+    # Putting a \noindent if line begins with '!'
     line = re.sub(r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", r'\\noindent\n\g<remainder>', line)
 
     # Replacing x by \x when x is a reserved character in LaTeX
