@@ -388,7 +388,7 @@ def block_parse(block):
 
     # The different block type it can be
     for i in range(len(main_reg_exp)):
-        if (not one_match) and re.search(main_reg_exp[i], block):
+        if re.search(main_reg_exp[i], block):
         # If we find a title we split into different paragraphs
             sub_blocks = re.split(sub_reg_exp[i],block)
             if sub_blocks != ['', block, '']:
