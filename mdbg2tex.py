@@ -138,7 +138,7 @@ def block_code_parse(matchObj):
 def all_tree_parse(matchObj):
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)
-    else :
+    else:
         return tree_parse(matchObj)
 
 def tree_parse(matchObj):
@@ -262,7 +262,7 @@ def table_parse(matchObj):
     table = matchObj.group('table')
 
     # Finding the number of rows
-    n = len(re.findall(r"(?<=\| )([^\|]*)(?= \|)", re.findall("^.*", table)[0]))
+    n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0]))
 
     # Creating out string
     out = '\\begin{center}\n\\begin{tabular}'
@@ -286,9 +286,14 @@ def table_parse(matchObj):
     for line in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?:^|(?<=\n)).*", table))):
     # For each line of the table
         out += "\\hline\n"
-        for element in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?<=\| )([^\|]*)(?= \|)", line))):
+        for element in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?<=\|)([^\|]*)(?=\|)", line))):
         # For each element of the line
-            # Add the parsed element
+            # Removing spaces from begining or end of element
+            print(repr(element))
+            element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
+            print(repr(element))
+
+            # Adding the parsed element
             out += block_parse(element) + '&'
         out = out[0:-1] + '\\\\\n'
     out = out[0:-3] + '\n\\hline\n\\end{tabular}\n\\end{center}\n'
@@ -315,6 +320,7 @@ def block_parse(block):
     if block in ('', '\n'):
         return block
     out = ''
+    print(block)
 
     # A block can be several blocks itself
     # Blocks can be :
@@ -350,9 +356,9 @@ def block_parse(block):
         r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",                          # title
         r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",                        # itemize
         r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",                 # enumerate
-        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", # table
+        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",   # table
         r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",                           # quotation
-        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                  # tree
+        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                 # tree
     ]
     parse_reg_exp=[
         # code
@@ -368,7 +374,7 @@ def block_parse(block):
         # enumerate
         r"(?:.|\n)*",
         # table
-        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?: [^\|]* \|)+(?:(?:\n(?=\|))|$)?)+)",
+        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
         # quote
         r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
         # tree
@@ -414,38 +420,77 @@ def inline_parse(line):
         return line
     out = ''
 
-    types = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
-    main_reg_exp = {
-        'code': r"`(?:(?!`).*)`",
-        'latex': r"\$(?:(?!\$).*)\$",
-        'quote1': r"\"(?! )[^\"]*\"",
-        'quote2': r"'(?! )[^'\n ]*'",
-        'bold': r"\*(?! )[^\*]*\*",
-        'underline': r"_(?! )[^_]*_",
-        'italic': r"%(?! )[^%]*%",
-        'strike': r"~(?! )[^~]*~",
-    }
-    sub_reg_exp = {
-        'code': r"(`(?:(?!`).*)`)",
-        'latex': r"(\$(?:(?!\$).*)\$)",
-        'quote1': r"(\"(?! )[^\"]*\")",
-        'quote2': r"('(?! )[^'\n ]*')",
-        'bold': r"(\*(?! )[^\*]*\*)",
-        'underline': r"(_(?! )[^_]*_)",
-        'italic': r"(%(?! )[^%]*%)",
-        'strike': r"(~(?! )[^~]*~)",
-    }
-
-    for t in types:
-        if re.search(main_reg_exp[t], line):
-        # If we find a block of t type
-            sub_lines = re.split(sub_reg_exp[t], line)
+    # It would be too easy if a line was an atom.
+    # We have to split it into code parts, latex parts, bold parts, italic parts etc.
+    if re.search(r"`(?:(?!`).*)`", line):
+    # If we find a block of inline code
+        sub_lines = re.split(r"(`(?:(?!`).*)`)", line)
+        if sub_lines != ['', line, '']:
+        # If this line is not an atom we have to re-split it
+            for sub_line in sub_lines:
+                out += inline_parse(sub_line)
+            return out
+    elif re.search(r"\$(?:(?!\$).*)\$", line):
+    # If we find LaTeX we split
+        sub_lines = re.split(r"(\$(?:(?!\$).*)\$)", line)
+        if sub_lines != ['', line, '']:
+        # If this line is not an atom we have to re-split it
+            for sub_line in sub_lines:
+                out += inline_parse(sub_line)
+            return out
+    else:
+    # The two conditions above are about code and LaTeX, the only two special types of blocks.
+    # Indeed, block code musn't be parsed in the same way that other parts, and LaTeX musn't be parsed
+    # at all as it is already LaTeX. That's why there are treated before other blocks.
+    # Now we know that there is no block code and no block LaTeX, we can parse blindly.
+        if re.search(r"\"(?! )[^\"]*\"", line):
+        # If we find quotation delimiters we split
+            sub_lines = re.split(r"(\"(?! )[^\"]*\")", line)
             if sub_lines != ['', line, '']:
             # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-            break
+        elif re.search(r"'(?! )[^'\n ]*'", line):
+        # If we find quotation delimiters we split
+            sub_lines = re.split(r"('(?! )[^'\n ]*')", line)
+            if sub_lines != ['', line, '']:
+            # If this line is not an atom we have to re-split it
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
+        elif re.search(r"\*(?! )[^\*]*\*", line):
+        # If we find bold delimiters we split
+            sub_lines = re.split(r"(\*(?! )[^\*]*\*)", line)
+            if sub_lines != ['', line, '']:
+            # If this line is not an atom we have to re-split it
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
+        elif re.search(r"_(?! )[^_]*_", line):
+        # If we find underline delimiters we split
+            sub_lines = re.split(r"(_(?! )[^_]*_)", line)
+            if sub_lines != ['', line, '']:
+            # If this line is not an atom we have to re-split it
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
+        elif re.search(r"%(?! )[^%]*%", line):
+        # If we find italic delimiters we split
+            sub_lines = re.split(r"(%(?! )[^%]*%)", line)
+            if sub_lines != ['', line, '']:
+            # If this line is not an atom we have to re-split it
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
+        elif re.search(r"~(?! )[^~]*~", line):
+        # If we find strikethrough delimiters we split
+            sub_lines = re.split(r"(~(?! )[^~]*~)", line)
+            if sub_lines != ['', line, '']:
+            # If this line is not an atom we have to re-split it
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
 
     # If we arrive here, that's because 'line' is an atom.
     # Congratulations !
