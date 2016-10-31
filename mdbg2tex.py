@@ -6,6 +6,10 @@
 import re
 import sys
 
+# Foo
+global tikz_needed
+tikz_needed = False
+
 # Documentation
 global doc
 
@@ -136,6 +140,8 @@ def block_code_parse(matchObj):
     return out
 
 def tree_parse(matchObj):
+    global tikz_needed
+    tikz_needed = True
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)
     else:
@@ -299,6 +305,7 @@ def table_parse(matchObj):
 
 def title_parse(matchObj):
     level = len(matchObj.group('level'))
+    star = matchObj.groupdict()['star'] is not None
     title = matchObj.group('title')
     paragraph = matchObj.group('paragraph')
     out = ''
@@ -309,6 +316,8 @@ def title_parse(matchObj):
             r"\paragraph",
             r"\subparagraph",
             r'\subsubparagraph'][level]
+    if star:
+        out += '*'
     out += '{' + inline_parse(title) + '}' + '\n'
     out += block_parse(paragraph)
     return out
@@ -339,7 +348,7 @@ def block_parse(block):
         'code':      r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
         'comment':   r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
         'latex':     r"(\\\[(?:.|\n)*?\\\])",
-        'title':     r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
+        'title':     r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':   r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
         'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':     r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
@@ -351,7 +360,7 @@ def block_parse(block):
         'code':      r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':   r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':     "(?P<everything>.*)",
-        'title':     r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'title':     r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':   r"(?:.|\n)*",
         'enumerate': r"(?:.|\n)*",
         'table':     r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
@@ -399,7 +408,7 @@ def inline_parse(line):
     keys = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
 
     detection_regex = {
-        'code':      r"(`(?:(?!`).*)`)",
+        'code':      r"(`(?:[^`\n]*?)`)",
         'latex':     r"(\$(?:(?!\$).*)\$)",
         'quote1':    r"(\"(?! )[^\"]*\")",
         'quote2':    r"('(?! )[^'\n ]*')",
@@ -444,7 +453,7 @@ def inline_parse(line):
     for key in keys:
         if re.search(detection_regex[key], line):
             inside = re.sub(parse_regex[key], r"\g<inside>", line)
-            return parse_borders[key][0] + inline_parse(inside) + parse_borders[key][1]
+            return parse_borders[key][0] + (inline_parse(inside) if key is not 'code' else inside) + parse_borders[key][1]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
@@ -460,6 +469,7 @@ def inline_parse(line):
         r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
         r"\<(?P<link>https?://[^ ]*)\>",                    # links
         r"[ ]*<br>",                                        # newline
+        r"(?<!\\)LaTeX"                                     # LaTeX
     ]
     supl_repl = [
         r"\\hrulefill\n",                                    
@@ -472,7 +482,8 @@ def inline_parse(line):
         r"\euro{}",                                         
         r"\\href{\g<link>}{\g<text>}",                       
         r"\\href{\g<link>}{\g<link>}",                       
-        r"\\newline",                                      
+        r"\\newline",  
+        r"\\LaTeX{}"                                    
     ]
 
     for i in range(len(supl_regex)):
@@ -519,7 +530,6 @@ def main():
     # by putting them in the -p or --packages option
 
     # If a tree is detected, tikz and his libraries are loaded and lua option is put on True
-    tikz_needed = re.search(r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", contents) is not None
     ARGV['lua'] = ARGV['lua'] or tikz_needed
 
     # Text encoding packages
