@@ -186,7 +186,7 @@ def ntree_parse(matchObj):
 
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
-    quotes = list(filter(lambda x: x != '' and x != '\n', re.split(r"(?:^|\n)> (.*)", quotes)))
+    quotes = [ x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n' ]
     try:
         # For quotations with a reference
         reference = matchObj.group('reference')
@@ -213,7 +213,7 @@ def itemize_parse(matchObj):
     items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize)
 
     # Removing '' and '\n' from items
-    items = list(filter(lambda x: x != '' and x != '\n', items))
+    items = [ x for x in items if x!='' and x != '\n']
 
 
     # Generate out string
@@ -238,8 +238,7 @@ def enumerate_parse(matchObj):
     items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", itemize)
 
     # Removing '' and '\n' from items
-    items = list(filter(lambda x: x != '' and x != '\n', items))
-
+    items = [ x for x in items if x != '' and x != '\n' ]
 
     # Generate out string
     out = "\\begin{enumerate}\n"
@@ -283,10 +282,10 @@ def table_parse(matchObj):
     out += '\n'
 
     # Filling the table
-    for line in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?:^|(?<=\n)).*", table))):
+    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and x != '\n' ]:
     # For each line of the table
         out += "\\hline\n"
-        for element in list(filter(lambda x: x != '' and x != '\n', re.findall(r"(?<=\| )([^\|]*)(?= \|)", line))):
+        for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]:
         # For each element of the line
             # Add the parsed element
             out += block_parse(element) + '&'
@@ -435,6 +434,36 @@ def inline_parse(line):
         'italic': r"(%(?! )[^%]*%)",
         'strike': r"(~(?! )[^~]*~)",
     }
+    parse_inside = {
+        'code': r"`(?P<inside>[^`\n]*)`",
+        'latex': r"(?P<inside>.*)",
+        'quote1': r"\"(?! )(?P<inside>[^\"]*)\"",
+        'quote2': r"'(?! )(?P<inside>[^'\n]*)'",
+        'bold': r"\*(?! )(?P<inside>[^\*]*)\*",
+        'underline': ,
+        'italic': ,
+        'strike': ,
+    }
+    parse_borders = {
+        'code': (r'\verb`','`'),
+        'latex': ('',''),
+        'quote1': (r'\say{','}'),
+        'quote2': (r'\say{','}'),
+        'bold': (r'\textbf{','}'),
+        'underline': (r'\ul{','}'),
+        'italic': (r'\textit{','}'),
+        'strike': (r'\st{','}'),
+    }
+    parse_rempl = {
+        'code': r"\g<inside>",
+        'latex': r"\g<inside>",
+        'quote1': r"\g<inside>",
+        'quote2': r"\g<inside>",
+        'bold': r"\g<inside>",
+        'underline': r"\g<inside>",
+        'italic': r"\g<inside>",
+        'strike': r"\g<inside>",
+    }
 
     for t in types:
         if re.search(main_reg_exp[t], line):
@@ -451,71 +480,43 @@ def inline_parse(line):
     # Congratulations !
     # Now we are going to parse it.
 
-    if re.search(r"`(?P<inside>[^`\n]*)`", line):
-    # If line is a block of inline code
-        inside = re.sub(r"`(?P<inside>[^`\n]*)`", r"\g<inside>", line)
-        return r'\verb`' + inline_parse(inside) + '`'
-
-    if re.search(r"\$[^\$\n]*\$", line):
-    # If line is in LaTeX
-        return line
-
-    if re.search(r"\"(?! )(?P<inside>[^\"]*)\"", line):
-    # If it is a quotation
-        inside = re.sub(r"\"(?! )(?P<inside>[^\"]*)\"", r"\g<inside>", line)
-        return r'\say{' + inline_parse(inside) + '}'
-
-    if re.search(r"'(?! )(?P<inside>[^'\n]*)'", line):
-    # If it is a quotation
-        inside = re.sub(r"'(?! )(?P<inside>[^'\n]*)'", r"\g<inside>", line)
-        return r'\say{' + inline_parse(inside) + '}'
-
-    if re.search(r"\*(?! )(?P<inside>[^\*]*)\*", line):
-    # If it is a bold part
-        inside = re.sub(r"\*(?! )(?P<inside>[^\*]*)\*", r"\g<inside>", line)
-        return r'\textbf{' + inline_parse(inside) + '}'
-
-    if re.search(r"_(?! )(?P<inside>[^_]*)_", line):
-    # If it is a underlined part
-        inside = re.sub(r"_(?! )(?P<inside>[^_]*)_", r"\g<inside>", line)
-        return r'\ul{' + inline_parse(inside) + '}'
-
-    if re.search(r"%(?! )(?P<inside>[^%]*)%", line):
-    # If it is a italic part
-        inside = re.sub(r"%(?! )(?P<inside>[^%]*)%", r"\g<inside>", line)
-        return r'\textit{' + inline_parse(inside) + '}'
-
-    if re.search(r"~(?! )(?P<inside>[^~]*)~", line):
-    # If it is a overstriked part
-        inside = re.sub(r"~(?! )(?P<inside>[^~]*)~", r"\g<inside>", line)
-        return r'\st{' + inline_parse(inside) + '}'
+    for t in types:
+        if re.search(main_reg_exp[t], line):
+        # If line is a block of t type
+            inside = re.sub(parse_inside[t], parse_rempl[t] ,line)
+            return parse_borders[t][0] + inline_parse(inside) + parse_borders[t][1]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
-    # Horizontal line
-    line = re.sub(r"^[-\*_]{3,}", "\\hrulefill\n", line)
+    supl_regexp = [
+        r"^[-\*_]{3,}", # horizontal line
+        r"\* \* \*", # removing decoration
+        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", # no indent
+        "_",
+        "&",
+        "#",
+        "%",
+        "€",
+        r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
+        r"\<(?P<link>https?://[^ ]*)\>", # links
+        r"[ ]*<br>", # newline
+    ]
+    supl_rempl = [
+        "\\hrulefill\n", # horizontal line
+        '', # removing decoration
+        r'\\noindent\n\g<remainder>', # no indent
+        r"\_",
+        r"\&",
+        r"\#",
+        r"\%",
+        r"\euro{}",
+        "\\href{\g<link>}{\g<text>}", # links
+        "\\href{\g<link>}{\g<link>}", # links
+        r" \\newline", # newline
+    ]
 
-    # Removing decoration
-    line = re.sub(r"\* \* \*", '', line)
-
-    # Putting a \noindent if line begins with '!'
-    line = re.sub(r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", r'\\noindent\n\g<remainder>', line)
-
-    # Replacing x by \x when x is a reserved character in LaTeX
-    line = re.sub("_", r"\_", line)
-    line = re.sub("&", r"\&", line)
-    line = re.sub("#", r"\#", line)
-    line = re.sub("%", r"\%", line)
-    line = re.sub("€", r"\euro{}", line)
-
-    # Handling links
-    # Links like "[This is google](http://www.google.com)"
-    line = re.sub(r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", "\\href{\g<link>}{\g<text>}", line)
-    # Links like "<http://www.google.com>"
-    line = re.sub(r"\<(?P<link>https?://[^ ]*)\>", "\\href{\g<link>}{\g<link>}", line)
-
-    # New line
-    line = re.sub(r"[ ]*<br>", r" \\newline", line)
+    for i in range(len(supl_regexp)):
+        line = re.sub(supl_regexp[i], supl_rempl[i], line)
 
     return line
 
