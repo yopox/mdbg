@@ -135,13 +135,13 @@ def block_code_parse(matchObj):
         out += "\\begin{minipage}{\\linewidth}\n"
     return out
 
-def all_tree_parse(matchObj):
+def tree_parse(matchObj):
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)
     else:
-        return tree_parse(matchObj)
+        return binary_tree_parse(matchObj)
 
-def tree_parse(matchObj):
+def binary_tree_parse(matchObj):
     # Possible options :
     #   - c : center
     option = matchObj.group('option')
@@ -282,15 +282,13 @@ def table_parse(matchObj):
     out += '\n'
 
     # Filling the table
-    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and x != '\n' ]:
+    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]:
     # For each line of the table
         out += "\\hline\n"
         for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]:
         # For each element of the line
             # Removing spaces from begining or end of element
-            print(repr(element))
             element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
-            print(repr(element))
 
             # Adding the parsed element
             out += block_parse(element) + '&'
@@ -319,7 +317,6 @@ def block_parse(block):
     if block in ('', '\n'):
         return block
     out = ''
-    print(block)
 
     # A block can be several blocks itself
     # Blocks can be :
@@ -336,78 +333,58 @@ def block_parse(block):
     # A block is some kind of node in a tree
     # A leaf is a piece of inline text or an block "elementary brick"
 
-    # types = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
-    main_reg_exp = [
-        r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```",    # code
-        r"<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->```",    # comment
-        r"\\\[(?:.|\n)*\\\]",                       # latex
-        r"(?:^|(?<=\n))#+(?= )",                    # title
-        r"(?:^|(?<=\n))(?:    |\t)-",               # itemize
-        r"(?:^|(?<=\n))    [0-9]+\. " ,             # enumerate
-        r"(?:^|(?<=\n))\|",                         # table
-        r"(?:^|(?<=\n))> ",                         # quotation
-        r"!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!",   # tree
-    ]
-    sub_reg_exp = [
-        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",                                  # code
-        r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",                                     # comment
-        r"\\\[(?:.|\n)*?\\\]",                                                      # latex
-        r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",                          # title
-        r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",                        # itemize
-        r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",                 # enumerate
-        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",   # table
-        r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",                           # quotation
-        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                 # tree
-    ]
-    parse_reg_exp=[
-        # code
-        r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
-        # comment
-        r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
-        # LaTeX
-        "(?P<everything>.*)",
-        # title
-        r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
-        # itemize
-        r"(?:.|\n)*",
-        # enumerate
-        r"(?:.|\n)*",
-        # table
-        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
-        # quote
-        r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
-        # tree
-        r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
-    ]
-    parse_repl=[
-        block_code_parse,   # code
-        "% \g<comment>",    # comment
-        "\g<everything>",   # LaTeX
-        title_parse,        # title
-        itemize_parse,      # itemize
-        enumerate_parse,    # enumerate
-        table_parse,        # table
-        quote_parse,        # quote
-        all_tree_parse,     # tree
-    ]
+    keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
 
-    # The different block type it can be
-    for i in range(len(main_reg_exp)):
-        if re.search(main_reg_exp[i], block):
-        # If we find a title we split into different paragraphs
-            sub_blocks = re.split(sub_reg_exp[i],block)
+    detection_regex = {
+        'code':      r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
+        'comment':   r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
+        'latex':     r"(\\\[(?:.|\n)*?\\\])",
+        'title':     r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':   r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
+        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
+        'table':     r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation': r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
+        'tree' :     r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
+    }
+
+    parse_regex = {
+        'code':      r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        'comment':   r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
+        'latex':     "(?P<everything>.*)",
+        'title':     r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':   r"(?:.|\n)*",
+        'enumerate': r"(?:.|\n)*",
+        'table':     r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation': r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
+        'tree' :     r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
+    }
+    
+    parse_repl = {
+        'code':      block_code_parse,
+        'comment':   "% \g<comment>",
+        'latex':     "\g<everything>",
+        'title':     title_parse,
+        'itemize':   itemize_parse,
+        'enumerate': enumerate_parse,
+        'table':     table_parse,
+        'quotation': quote_parse,
+        'tree' :     tree_parse,
+    }
+
+    for key in keys:
+        if re.search(detection_regex[key], block):
+            sub_blocks = re.split(detection_regex[key],block)
             if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
             break
 
     # Now we know that 'block' is an elementary brick, let's parse it
-    for i in range(len(main_reg_exp)):
-        if re.search(main_reg_exp[i], block):
+    for key in keys:
+        if re.search(detection_regex[key], block):
         # If the block is this type of block
-            return re.sub(parse_reg_exp[i], parse_repl[i], block)
+            return re.sub(parse_regex[key], parse_repl[key], block)
 
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
@@ -419,64 +396,43 @@ def inline_parse(line):
         return line
     out = ''
 
-    types = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
-    main_reg_exp = {
-        'code': r"`(?:(?!`).*)`",
-        'latex': r"\$(?:(?!\$).*)\$",
-        'quote1': r"\"(?! )[^\"]*\"",
-        'quote2': r"'(?! )[^'\n ]*'",
-        'bold': r"\*(?! )[^\*]*\*",
-        'underline': r"_(?! )[^_]*_",
-        'italic': r"%(?! )[^%]*%",
-        'strike': r"~(?! )[^~]*~",
-    }
-    sub_reg_exp = {
-        'code': r"(`(?:(?!`).*)`)",
-        'latex': r"(\$(?:(?!\$).*)\$)",
-        'quote1': r"(\"(?! )[^\"]*\")",
-        'quote2': r"('(?! )[^'\n ]*')",
-        'bold': r"(\*(?! )[^\*]*\*)",
+    keys = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
+
+    detection_regex = {
+        'code':      r"(`(?:(?!`).*)`)",
+        'latex':     r"(\$(?:(?!\$).*)\$)",
+        'quote1':    r"(\"(?! )[^\"]*\")",
+        'quote2':    r"('(?! )[^'\n ]*')",
+        'bold':      r"(\*(?! )[^\*]*\*)",
         'underline': r"(_(?! )[^_]*_)",
-        'italic': r"(%(?! )[^%]*%)",
-        'strike': r"(~(?! )[^~]*~)",
+        'italic':    r"(%(?! )[^%]*%)",
+        'strike':    r"(~(?! )[^~]*~)"
     }
-    parse_inside = {
-        'code': r"`(?P<inside>[^`\n]*)`",
-        'latex': r"(?P<inside>.*)",
-        'quote1': r"\"(?! )(?P<inside>[^\"]*)\"",
-        'quote2': r"'(?! )(?P<inside>[^'\n]*)'",
-        'bold': r"\*(?! )(?P<inside>[^\*]*)\*",
-        'underline': ,
-        'italic': ,
-        'strike': ,
+    parse_regex = {
+        'code':      r"`(?P<inside>[^`\n]*)`",
+        'latex':     r"\$(?P<inside>(?!\$).*)\$",
+        'quote1':    r"\"(?! )(?P<inside>[^\"]*?)\"",
+        'quote2':    r"'(?! )(?P<inside>[^'\n ]*?)'",
+        'bold':      r"\*(?! )(?P<inside>[^\*]*)\*",
+        'underline': r"_(?! )(?P<inside>[^_]*)_",
+        'italic':    r"%(?! )(?P<inside>[^%]*)%",
+        'strike':    r"~(?! )(?P<inside>[^~]*)~"
     }
     parse_borders = {
-        'code': (r'\verb`','`'),
-        'latex': ('',''),
-        'quote1': (r'\say{','}'),
-        'quote2': (r'\say{','}'),
-        'bold': (r'\textbf{','}'),
-        'underline': (r'\ul{','}'),
-        'italic': (r'\textit{','}'),
-        'strike': (r'\st{','}'),
-    }
-    parse_rempl = {
-        'code': r"\g<inside>",
-        'latex': r"\g<inside>",
-        'quote1': r"\g<inside>",
-        'quote2': r"\g<inside>",
-        'bold': r"\g<inside>",
-        'underline': r"\g<inside>",
-        'italic': r"\g<inside>",
-        'strike': r"\g<inside>",
+        'code':      (r'\verb`',   '`'),
+        'latex':     ('',           ''),
+        'quote1':    (r'\say{',    '}'),
+        'quote2':    (r'\say{',    '}'),
+        'bold':      (r'\textbf{', '}'),
+        'underline': (r'\ul{',     '}'),
+        'italic':    (r'\textit{', '}'),
+        'strike':    (r'\st{',     '}'),
     }
 
-    for t in types:
-        if re.search(main_reg_exp[t], line):
-        # If we find a block of t type
-            sub_lines = re.split(sub_reg_exp[t], line)
+    for key in keys:
+        if re.search(detection_regex[key], line):
+            sub_lines = re.split(detection_regex[key], line)
             if sub_lines != ['', line, '']:
-            # If this line is not an atom we have to re-split it
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
@@ -485,43 +441,42 @@ def inline_parse(line):
     # Congratulations !
     # Now we are going to parse it.
 
-    for t in types:
-        if re.search(main_reg_exp[t], line):
-        # If line is a block of t type
-            inside = re.sub(parse_inside[t], parse_rempl[t] ,line)
-            return parse_borders[t][0] + inline_parse(inside) + parse_borders[t][1]
+    for key in keys:
+        if re.search(detection_regex[key], line):
+            inside = re.sub(parse_regex[key], r"\g<inside>", line)
+            return parse_borders[key][0] + inline_parse(inside) + parse_borders[key][1]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
-    supl_regexp = [
-        r"^[-\*_]{3,}", # horizontal line
-        r"\* \* \*", # removing decoration
-        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", # no indent
-        "_",
-        "&",
-        "#",
-        "%",
-        "€",
+    supl_regex = [
+        r"^[-\*_]{3,}",                                     # horizontal line
+        r"\* \* \*",                                        # removing decoration
+        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)",           # no indent
+        r"_",                                               # replacing _ by \_
+        r"&",                                               # replacing & by \&
+        r"#",                                               # replacing # by \#
+        r"%",                                               # replacing % by \%
+        r"€",                                               # replacing € by \euro{}
         r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
-        r"\<(?P<link>https?://[^ ]*)\>", # links
-        r"[ ]*<br>", # newline
+        r"\<(?P<link>https?://[^ ]*)\>",                    # links
+        r"[ ]*<br>",                                        # newline
     ]
-    supl_rempl = [
-        "\\hrulefill\n", # horizontal line
-        '', # removing decoration
-        r'\\noindent\n\g<remainder>', # no indent
-        r"\_",
-        r"\&",
-        r"\#",
-        r"\%",
-        r"\euro{}",
-        "\\href{\g<link>}{\g<text>}", # links
-        "\\href{\g<link>}{\g<link>}", # links
-        r" \\newline", # newline
+    supl_repl = [
+        r"\\hrulefill\n",                                    
+        r'',                                                 
+        r'\\noindent\n\g<remainder>',                       
+        r"\_",                                              
+        r"\&",                                              
+        r"\#",                                              
+        r"\%",                                              
+        r"\euro{}",                                         
+        r"\\href{\g<link>}{\g<text>}",                       
+        r"\\href{\g<link>}{\g<link>}",                       
+        r"\\newline",                                      
     ]
 
-    for i in range(len(supl_regexp)):
-        line = re.sub(supl_regexp[i], supl_rempl[i], line)
+    for i in range(len(supl_regex)):
+        line = re.sub(supl_regex[i], supl_repl[i], line)
 
     return line
 
@@ -571,7 +526,7 @@ def main():
     if ARGV['lua']:
         output.write("\\usepackage{fontspec}\n")
     else:
-        output.write("\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}")
+        output.write("\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}\n")
 
     additionnal_packages = []
     if 'packages' in ARGV:
