@@ -124,6 +124,12 @@ def block_code_parse(matchObj):
         out += "\\begin{minipage}{\\linewidth}\n"
     return out
 
+def all_tree_parse(matchObj):
+    if "nTREE" in matchObj.group(0):
+        return ntree_parse(matchObj)
+    else :
+        return tree_parse(matchObj)
+
 def tree_parse(matchObj):
     # Possible options :
     #   - c : center
@@ -320,7 +326,7 @@ def block_parse(block):
         r"<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->```",    # comment
         r"\\\[(?:.|\n)*\\\]",                       # latex
         r"(?:^|(?<=\n))#+(?= )",                    # title
-        r"(?:^|(?<=\n))    -",                      # itemize
+        r"(?:^|(?<=\n))(?:    |\t)-",               # itemize
         r"(?:^|(?<=\n))    [0-9]+\. " ,             # enumerate
         r"(?:^|(?<=\n))\|",                         # table
         r"(?:^|(?<=\n))> ",                         # quotation
@@ -335,66 +341,57 @@ def block_parse(block):
         r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",                 # enumerate
         r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", # table
         r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",                           # quotation
-        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"                                  # tree
+        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                  # tree
     ]
-
-    # Match flag
-    one_match = False
+    parse_reg_exp=[
+        # code
+        r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        # comment
+        r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
+        # LaTeX
+        "(?P<everything>.*)",
+        # title
+        r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        # itemize
+        r"(?:.|\n)*",
+        # enumerate
+        r"(?:.|\n)*",
+        # table
+        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?: [^\|]* \|)+(?:(?:\n(?=\|))|$)?)+)",
+        # quote
+        r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
+        # tree
+        r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
+    ]
+    parse_repl=[
+        block_code_parse,   # code
+        "% \g<comment>",    # comment
+        "\g<everything>",   # LaTeX
+        title_parse,        # title
+        itemize_parse,      # itemize
+        enumerate_parse,    # enumerate
+        table_parse,        # table
+        quote_parse,        # quote
+        all_tree_parse,     # tree
+    ]
 
     # The different block type it can be
     for i in range(len(main_reg_exp)):
         if (not one_match) and re.search(main_reg_exp[i], block):
         # If we find a title we split into different paragraphs
-            one_match = True
             sub_blocks = re.split(sub_reg_exp[i],block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
+            break
 
     # Now we know that 'block' is an elementary brick, let's parse it
-
-    if re.search(r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```", block):
-    # If the block is a block of code
-        return re.sub(r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```", block_code_parse, block)
-
-    if re.search(r"<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->```", block):
-    # If we find a block of code
-        return re.sub(r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->", "% \g<comment>", block)
-
-    if re.search(r"\\\[(?:.|\n)*\\\]", block):
-    # If the block is an block LaTeX part
-        return block
-
-    if re.search(r"(?:^|(?<=\n))#+(?= )", block):
-    # If the block is a 'title + paragraph' we parse it as it should be
-        return re.sub(r"(?:^|(?<=\n))(?P<level>#+) (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)", title_parse, block)
-
-    if re.search(r"(?:^|(?<=\n))(?:    |\t)-", block):
-    # If the block is an itemize
-        return re.sub(r"(?:.|\n)*", itemize_parse, block)
-
-    if re.search(r"(?:^|(?<=\n))    [0-9]+\. ", block):
-    # If the block is an enumerate
-        return re.sub(r"(?:.|\n)*", enumerate_parse, block)
-
-    if re.search(r"(?:^|(?<=\n))\|", block):
-    # If the block is a table
-        return re.sub(r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?: [^\|]* \|)+(?:(?:\n(?=\|))|$)?)+)", table_parse, block)
-
-    if re.search(r"(?:^|(?<=\n))> ", block):
-    # If the block is a quotation
-        return re.sub(r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?", quote_parse, block)
-
-    if re.search(r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)", block):
-    # If the block is a tree
-        if 'nTREE' in block:
-        # If the tree is a ntree
-            return re.sub(r"!\[(?:(?P<option>[a-z])-)?nTREE (?P<tree>(?:(?!\]!).)*)\]!", ntree_parse, block)
-        else:
-        # If it is a binary tree
-            return re.sub(r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", tree_parse, block)
+    for i in range(len(main_reg_exp)):
+        if re.search(main_reg_exp[i], block):
+        # If the block is this type of block
+            return re.sub(parse_reg_exp[i], parse_repl[i], block)
 
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
