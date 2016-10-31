@@ -188,7 +188,7 @@ def quote_parse(matchObj):
 def itemize_parse(matchObj):
     # Catching the itemize block from the match object
     itemize = matchObj.group(0)
-    
+
     # Removing left indentation
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
 
@@ -213,7 +213,7 @@ def itemize_parse(matchObj):
 def enumerate_parse(matchObj):
     # Catching the itemize block from the match object
     itemize = matchObj.group(0)
-    
+
     # Removing left indentation
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
 
@@ -283,12 +283,12 @@ def title_parse(matchObj):
     title = matchObj.group('title')
     paragraph = matchObj.group('paragraph')
     out = ''
-    out += [r"\chapter", 
-            r"\section", 
-            r"\subsection", 
-            r"\subsubsection", 
-            r"\paragraph", 
-            r"\subparagraph", 
+    out += [r"\chapter",
+            r"\section",
+            r"\subsection",
+            r"\subsubsection",
+            r"\paragraph",
+            r"\subparagraph",
             r'\subsubparagraph'][level]
     out += '{' + title + '}' + '\n'
     out += block_parse(paragraph)
@@ -314,79 +314,39 @@ def block_parse(block):
     # A block is some kind of node in a tree
     # A leaf is a piece of inline text or an block "elementary brick"
 
-    # Let's find the sub-blocks
-    if re.search(r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```", block):
-    # If we find a block of code
-        sub_blocks = re.split(r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)", block)
-        if sub_blocks != ['', block, '']:
-        # If this block is not an atom we have to re-split it
-            for sub_block in sub_blocks:
-                out += block_parse(sub_block)
-            return out
-    elif re.search(r"<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->```", block):
-    # If we find a comment
-        sub_blocks = re.split(r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)", block)
-        if sub_blocks != ['', block, '']:
-        # If this block is not an atom we have to re-split it
-            for sub_block in sub_blocks:
-                out += block_parse(sub_block)
-            return out
-    elif re.search(r"\\\[(?:.|\n)*\\\]", block):
-    # If we find a block LaTeX part
-        sub_blocks = re.split(r"\\\[(?:.|\n)*?\\\]", block)
-        if sub_blocks != ['', block, '']:
-        # If this block is not an atom we have to re-split it
-            for sub_block in sub_blocks:
-                out += block_parse(sub_block)
-            return out
-    else:
-    # The three conditions above are about code, LaTeX and comments, the only three special types of blocks.
-    # Indeed, block code musn't be parsed in the same way that other parts, LaTeX musn't be parsed
-    # at all as it is already LaTeX, and comments musn't be changed either. That's why there are treated before other blocks.
-    # Now we know that there is no block code and no block LaTeX, we can parse blindly.
-        if re.search(r"(?:^|(?<=\n))#+(?= )", block):
+    # types = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
+    main_reg_exp = [
+        r"```[^\n]*\n(?:(?!```)(?:.|\n))*\n```",    # code
+        r"<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->```",    # comment
+        r"\\\[(?:.|\n)*\\\]",                       # latex
+        r"(?:^|(?<=\n))#+(?= )",                    # title
+        r"(?:^|(?<=\n))    -",                      # itemize
+        r"(?:^|(?<=\n))    [0-9]+\. " ,             # enumerate
+        r"(?:^|(?<=\n))\|",                         # table
+        r"(?:^|(?<=\n))> ",                         # quotation
+        r"!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!",   # tree
+    ]
+    sub_reg_exp = [
+        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",                                  # code
+        r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",                                     # comment
+        r"\\\[(?:.|\n)*?\\\]",                                                      # latex
+        r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",                          # title
+        r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",                        # itemize
+        r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",                 # enumerate
+        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", # table
+        r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",                           # quotation
+        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"                                  # tree
+    ]
+
+    # Match flag
+    one_match = False
+
+    # The different block type it can be
+    for i in range(len(main_reg_exp)):
+        if (not one_match) and re.search(main_reg_exp[i], block):
         # If we find a title we split into different paragraphs
-            sub_blocks = re.split(r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)", block)
-            if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
-                for sub_block in sub_blocks:
-                    out += block_parse(sub_block)
-                return out
-        elif re.search(r"(?:^|(?<=\n))    -", block):
-        # If we find an itemize
-            sub_blocks = re.split(r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)", block)
-            if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
-                for sub_block in sub_blocks:
-                    out += block_parse(sub_block)
-                return out
-        elif re.search(r"(?:^|(?<=\n))    [0-9]+\. ", block):
-        # If we find an enumerate
-            sub_blocks = re.split(r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)", block)
-            if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
-                for sub_block in sub_blocks:
-                    out += block_parse(sub_block)
-                return out
-        elif re.search(r"(?:^|(?<=\n))\|", block):
-        # If we find a table
-            sub_blocks = re.split(r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", block)
-            if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
-                for sub_block in sub_blocks:
-                    out += block_parse(sub_block)
-                return out
-        elif re.search(r"(?:^|(?<=\n))> ", block):
-        # If we find a block quotation
-            sub_blocks = re.split(r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)", block)
-            if sub_blocks != ['', block, '']:
-            # If this block is not an atom we have to re-split it
-                for sub_block in sub_blocks:
-                    out += block_parse(sub_block)
-                return out
-        elif re.search(r"!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!", block):
-        # If we find a tree
-            sub_blocks = re.split(r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)", block)
+            one_match = True
+            sub_blocks = re.split(sub_reg_exp[i],block)
             if sub_blocks != ['', block, '']:
             # If this block is not an atom we have to re-split it
                 for sub_block in sub_blocks:
