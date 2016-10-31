@@ -138,7 +138,7 @@ def block_code_parse(matchObj):
 def all_tree_parse(matchObj):
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)
-    else :
+    else:
         return tree_parse(matchObj)
 
 def tree_parse(matchObj):
@@ -261,7 +261,7 @@ def table_parse(matchObj):
     table = matchObj.group('table')
 
     # Finding the number of rows
-    n = len(re.findall(r"(?<=\| )([^\|]*)(?= \|)", re.findall("^.*", table)[0]))
+    n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0]))
 
     # Creating out string
     out = '\\begin{center}\n\\begin{tabular}'
@@ -287,7 +287,12 @@ def table_parse(matchObj):
         out += "\\hline\n"
         for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]:
         # For each element of the line
-            # Add the parsed element
+            # Removing spaces from begining or end of element
+            print(repr(element))
+            element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
+            print(repr(element))
+
+            # Adding the parsed element
             out += block_parse(element) + '&'
         out = out[0:-1] + '\\\\\n'
     out = out[0:-3] + '\n\\hline\n\\end{tabular}\n\\end{center}\n'
@@ -314,6 +319,7 @@ def block_parse(block):
     if block in ('', '\n'):
         return block
     out = ''
+    print(block)
 
     # A block can be several blocks itself
     # Blocks can be :
@@ -349,9 +355,9 @@ def block_parse(block):
         r"((?:^|(?<=\n))#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)",                          # title
         r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",                        # itemize
         r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",                 # enumerate
-        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?::? [^\|]* :?\|)+(?:(?:\n(?=\|))|$)?)+)", # table
+        r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",   # table
         r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",                           # quotation
-        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                  # tree
+        r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",                                 # tree
     ]
     parse_reg_exp=[
         # code
@@ -367,7 +373,7 @@ def block_parse(block):
         # enumerate
         r"(?:.|\n)*",
         # table
-        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?: [^\|]* \|)+(?:(?:\n(?=\|))|$)?)+)",
+        r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
         # quote
         r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
         # tree
@@ -474,7 +480,6 @@ def inline_parse(line):
                 for sub_line in sub_lines:
                     out += inline_parse(sub_line)
                 return out
-            break
 
     # If we arrive here, that's because 'line' is an atom.
     # Congratulations !
