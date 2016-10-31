@@ -41,6 +41,12 @@ Options :
     -T : shortcut for --tableofcontents
     --tableofcontents : if a table of contents is needed ('on' by default)
 
+    -r : shortcut for --robot option
+    --robot : put this option if you want to use RobotMono font for your code
+
+    -l : shortcut for --lua
+    --lua : put this option if you are intending to compile your .tex document with LuaLaTeX or not. It is automatically set to True if there are trees in your document.
+
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -52,7 +58,9 @@ ARGV = {
     'input': '',
     'documentclass': 'report',
     'tableofcontents': True,
-    'help': False
+    'help': False,
+    'lua': False,
+    'robot': False
 }
 
 
@@ -83,7 +91,10 @@ def arg_treatment():
         '--help': 'help',
         '-T': 'tableofcontents',
         '--tableofcontents': 'tableofcontents',
-        '-m': 'minted'
+        '--lua': 'lua',
+        '-l': 'lua',
+        '--robot': 'robot',
+        '-r': 'robot'
     }
 
     # options treatment
@@ -290,7 +301,7 @@ def title_parse(matchObj):
             r"\paragraph",
             r"\subparagraph",
             r'\subsubparagraph'][level]
-    out += '{' + title + '}' + '\n'
+    out += '{' + inline_parse(title) + '}' + '\n'
     out += block_parse(paragraph)
     return out
 
@@ -587,6 +598,17 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
+
+    # If a tree is detected, tikz and his libraries are loaded and lua option is put on True
+    tikz_needed = re.search(r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", contents) is not None
+    ARGV['lua'] = ARGV['lua'] or tikz_needed
+
+    # Text encoding packages
+    if ARGV['lua']:
+        output.write("\\usepackage{fontspec}\n")
+    else:
+        output.write("\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}")
+
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -599,7 +621,6 @@ def main():
             additionnal_packages = temp.split(', ')
 
     packages = ["[frenchb]{babel}",
-                "{fontspec}",
                 "[dvipsnames]{xcolor}",
                 "[a4paper]{geometry}",
                 "{amsmath}",
@@ -613,10 +634,6 @@ def main():
                 "{hyperref}",
                 "[official]{eurosym}"] + additionnal_packages
 
-    # If a tree is detected, tikz and his libraries are loaded
-    # Note that this will require LuaLateX to compile !
-    tikz_needed = re.search(
-        r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", contents) is not None
     if tikz_needed:
         packages.append('{tikz}')
 
@@ -631,10 +648,14 @@ def main():
             output.write(
                 "\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
 
+    # RobotMono font
+    if ARGV['robot']:
+        output.write("\setmonofont{[RobotoMono-Regular.ttf]}\n")
+
     # Syntax highliting
     if '`' in contents:
         # If the document is likely to contain a piece of code
-        output.write(r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},stringstyle=\color{Green},commentstyle=\color{Gray},identifierstyle=\color{NavyBlue},numberstyle=\color{Gray},numbers=left,breaklines=true,breakatwhitespace=true,breakautoindent=true,breakindent=5pt,showstringspaces=false}" + '\n')
+        output.write(r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},stringstyle=\color{Green},commentstyle=\color{Gray},identifierstyle=\color{NavyBlue},numberstyle=\color{Gray},numbers=left,breaklines=true,breakatwhitespace=true,breakautoindent=true,breakindent=5pt,showstringspaces=false, tabsize=4}" + '\n')
 
     # Presentation
     if 'title' in ARGV:
@@ -643,8 +664,6 @@ def main():
         output.write(r"\author{" + ARGV['author'] + "}\n")
     if 'date' in ARGV:
         output.write(r"\date{" + ARGV['date'] + "}\n")
-
-    output.write("\setmonofont{[RobotoMono-Regular.ttf]}\n")
 
     output.write("\\begin{document}\n")
     output.write("\\nocite{*}\n")
