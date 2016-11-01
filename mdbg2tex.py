@@ -6,6 +6,10 @@
 import re
 import sys
 
+# Foo
+global tikz_needed
+tikz_needed = False
+
 # Documentation
 global doc
 
@@ -41,7 +45,13 @@ Options :
     -T : shortcut for --tableofcontents
     --tableofcontents : if a table of contents is needed ('on' by default)
 
-Go to https://github.com/YoPox/mdbg/ for more information
+    -r : shortcut for --robot option
+    --robot : put this option if you want to use RobotMono font for your code
+
+    -l : shortcut for --lua
+    --lua : put this option if you are intending to compile your .tex document with LuaLaTeX or not. It is automatically set to True if there are trees in your document.
+
+Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
 # Managing arguments
@@ -52,7 +62,9 @@ ARGV = {
     'input': '',
     'documentclass': 'report',
     'tableofcontents': True,
-    'help': False
+    'help': False,
+    'lua': False,
+    'robot': False
 }
 
 
@@ -82,7 +94,11 @@ def arg_treatment():
         '-h': 'help',
         '--help': 'help',
         '-T': 'tableofcontents',
-        '--tableofcontents': 'tableofcontents'
+        '--tableofcontents': 'tableofcontents',
+        '--lua': 'lua',
+        '-l': 'lua',
+        '--robot': 'robot',
+        '-r': 'robot'
     }
 
     # options treatment
@@ -98,8 +114,9 @@ def arg_treatment():
 
 # Parsing functions
 
+# Block parsing
 
-def sep_parse_block_code(matchObj, block_codes):
+def block_code_parse(matchObj):
     # Option syntax : "java" if wanted language is java, and "nb-java" if
     # wanted language is java AND non breaking is wanted
     code = matchObj.group('code')
@@ -120,366 +137,361 @@ def sep_parse_block_code(matchObj, block_codes):
     out += "\n\\end{lstlisting}"
     if non_breaking:
         out += "\\begin{minipage}{\\linewidth}\n"
-    block_codes.append(out)
-    # How is going to use &é(]°(-è*@|{) in his document ?...
-    return r"&é(]°(-è*@|{)" + str(len(block_codes)) + r"&é(]°(-è*@|{)"
-
-
-def sep_parse_inline_code(matchObj, inline_codes):
-    code = matchObj.group('code')
-    inline_codes.append("\\verb`" + code + '`')
-    # Again, no one will use £%£%§²& in a document, well... except you maybe ?
-    return r'£%£%§²&' + str(len(inline_codes)) + r'£%£%§²&'
-
-
-def bolden(matchObj):
-    # All this funny and odd regexp is to treat things like "foo **bar _ foo** bar ~~foo _bar~~"
-    # Example : https://regex101.com/r/CzZFwo/1
-    # On this example (the first regexp which follows) we want to match a beggining of a strikethrough environnement
-    # Once every beggining/end of every different environnement than the current one has been found, we have to check if
-    # there are as many begginings as ends, for each environnement, otherwise we are in a wierd case like above, that's why
-    # length of findall lists are compared
-    # This is the same for each style environnement handled by this program,
-    # i.e. **, _ and ~~
-    bold = matchObj.group('bold')
-    left1 = re.findall(
-        r"^~~((?!(?:~~))[^ ])|(?:(?!(?:~~))\W)~~(?:(?!(?:~~))[^ ])", bold)
-    right1 = re.findall(
-        r"(?:(?!(?:~~))[^ ])~~$|(?:(?!(?:~~))[^ ])~~(?:(?!(?:~~))\W)", bold)
-    left2 = re.findall(
-        r"^_((?!(?:_))[^ ])|(?:(?!(?:_))\W)_(?:(?!(?:_))[^ ])", bold)
-    right2 = re.findall(
-        r"(?:(?!(?:_))[^ ])_$|(?:(?!(?:_))[^ ])_(?:(?!(?:_))\W)", bold)
-    if r"\begin" not in bold and r"\end" not in bold and '&' not in bold and len(left1) == len(right1) and len(left2) == len(right2):
-        return r"\textbf{" + bold + "}"
-    else:
-        return bold
-
-
-def italien(matchObj):  # italicien ? italicize ?
-    # c.f. bolden()
-    it = matchObj.group('it')
-    left1 = re.findall(
-        r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)\*\*(?:(?!(?:\*\*))[^ ])", it)
-    right1 = re.findall(
-        r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])\*\*(?:(?!(?:\*\*))\W)", it)
-    left2 = re.findall(
-        "^_((?!(?:_))[^ ])|(?:(?!(?:_))\W)_(?:(?!(?:_))[^ ])", it)
-    right2 = re.findall(
-        "(?:(?!(?:_))[^ ])_$|(?:(?!(?:_))[^ ])_(?:(?!(?:_))\W)", it)
-    if r"\begin" not in it and r"\end" not in it and '&' not in it and len(left1) == len(right1) and len(left2) == len(right2):
-        return r"\textit{" + it + "}"
-    else:
-        return it
-
-
-def striken(matchObj):
-    # c.f. bolden()
-    strike = matchObj.group('strike')
-    left1 = re.findall(
-        r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)\*\*(?:(?!(?:\*\*))[^ ])", strike)
-    right1 = re.findall(
-        r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])\*\*(?:(?!(?:\*\*))\W)", strike)
-    left2 = re.findall(
-        "^~~((?!(?:~~))[^ ])|(?:(?!(?:~~))\W)~~(?:(?!(?:~~))[^ ])", strike)
-    right2 = re.findall(
-        "(?:(?!(?:~~))[^ ])~~$|(?:(?!(?:~~))[^ ])~~(?:(?!(?:~~))\W)", strike)
-    if r"\begin" not in strike and r"\end" not in strike and '&' not in strike and len(left1) == len(right1) and len(left2) == len(right2):
-        return r"\st{" + strike + "}"
-    else:
-        return strike
-
+    return out
 
 def tree_parse(matchObj):
+    global tikz_needed
+    tikz_needed = True
+    if "nTREE" in matchObj.group(0):
+        return ntree_parse(matchObj)
+    else:
+        return binary_tree_parse(matchObj)
+
+def binary_tree_parse(matchObj):
     # Possible options :
     #   - c : center
     option = matchObj.group('option')
     nodes = [list(x) for x in re.findall(r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
-    out_str = "\n\\begin{center}" if option == 'c' else ""
-    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
+    out = "\n\\begin{center}" if option == 'c' else ""
+    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers LuaLaTeX to compile (the algorithm aiming at computing distance
     # between elements of the graphs is written in Lua)
     # The traversal is a pre-order traversal
     # If you don't understand that code you should go to math spé in Lycée
     # Henri IV and ask E. T.
-
     def get_tree():
         def aux(i, depth):
             if nodes[i][0] == 'F':
                 f = nodes[i][1]
-                return ('"' + (f if f != '()' else '') + '"', i + 1)
+                return ('"' + (block_parse(f) if f != '()' else '') + '"', i + 1)
             else:
                 (g, r1) = aux(i + 1, depth + 1)
                 (d, r2) = aux(r1, depth + 1)
-                return ('"' + nodes[i][1] + '"' + " -- {" + g + "," + d + "}", r2)
+                return ('"' + block_parse(nodes[i][1]) + '"' + " -- {" + g + "," + d + "}", r2)
         (ans, r) = aux(0, 1)
         if r != l:
             return ""
         else:
-            return re.sub("\n ?\n", "\n", ans) + "};\n"
-    out_str += get_tree() + "\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
-    return out_str
+            return re.sub(r"\n ?\n", r"\n", ans) + "};\n"
+
+    out += get_tree() + "\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
+    return out
 
 def ntree_parse(matchObj):
     # Possible options :
     #   - c : center
+    # /!\ if you want to use bold or italic etc. in a nTREE you must type it in LaTeX, not in MarkdownBG
     option = matchObj.group('option')
     tree = matchObj.group('tree')
-    out_str = "\n\\begin{center}" if option == 'c' else ""
-    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
-    out_str += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
-    return out_str
+    out = "\n\\begin{center}" if option == 'c' else ""
+    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
+    out += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
+    return out
 
 
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
-    quotes = re.split("(?:^|\n)> (.*)", quotes)
+    quotes = [ x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n' ]
     try:
         # For quotations with a reference
         reference = matchObj.group('reference')
         out = ''
         for quote in quotes:
-            if quote != '':
-                out += quote + r" \\ "
-        return r"\epigraph{" + out[0:-4] + "}" + "{" + reference + "}"
+            out += block_parse(quote) + r"\\"
+        return r"\epigraph{" + out[0:-2] + "}" + "{" + block_parse(reference) + "}"
     except:
         # For quotations without a reference
         out = "\n\\medskip\n\\begin{displayquote}\n"
         for quote in quotes:
-            if quote != '':
-                out += quote + r" \\ "
-        return out[0:-4] + "\n\\end{displayquote}\n\\medskip\n"
+            out += block_parse(quote) + r"\\"
+        return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n"
 
 
-def itemize_parse(i, matchObj):
-    # i : item depth
+def itemize_parse(matchObj):
+    # Catching the itemize block from the match object
     itemize = matchObj.group(0)
-    # If level is not 1 we add some space and a '-' to make the algorithm believe that the items are normal markdown
-    # items when it parses a smaller level
-    # When all levels greater than 1 are parsed, level 1 is parsed normally and that's why everything goes well
-    # This functions does the work for only ONE level, of depth i
-    out = (("    " * i + "- ") if i != 1 else "") + "\\begin{itemize}\n"
-    for item in re.findall(r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)- ((?:(?!\n[ ]{4,}- )(?:.|\n))*)", itemize):
-        out += (r"\item " if item !=
-                '' and item[0:min(len(item), 6)] != "\\begin" else "") + item + '\n'
-    out += r"\end{itemize}"
+
+    # Removing left indentation
+    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
+
+    # Splitting items and removing '-' symbol from each item
+    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize)
+
+    # Removing '' and '\n' from items
+    items = [ x for x in items if x!='' and x != '\n']
+
+
+    # Generate out string
+    out = "\\begin{itemize}\n"
+
+    # Adding parsed items
+    for item in items:
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
+    out += "\\end{itemize}\n"
+
     return out
 
 
-def enumerate_parse(i, matchObj):
-    # Same idea
-    enum = matchObj.group(0)
-    out = (("    " * i + "1. ") if i != 1 else "") + "\\begin{enumerate}\n"
-    for item in re.findall(r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)[0-9]+\. ((?:(?!\n[ ]{4,}[0-9]+\. )(?:.|\n))*)", enum):
-        out += (r"\item " if item !=
-                '' and item[0:min(len(item), 6)] != "\\begin" else "") + item + '\n'
-    out += r"\end{enumerate}"
+def enumerate_parse(matchObj):
+    # Catching the itemize block from the match object
+    itemize = matchObj.group(0)
+
+    # Removing left indentation
+    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
+
+    # Splitting items and removing '-' symbol from each item
+    items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", itemize)
+
+    # Removing '' and '\n' from items
+    items = [ x for x in items if x != '' and x != '\n' ]
+
+    # Generate out string
+    out = "\\begin{enumerate}\n"
+
+    # Adding parsed items
+    for item in items:
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
+    out += "\\end{enumerate}\n"
+
     return out
 
 
-def table_parse(m):
-    # m : match trouvé pour un tableau :
-    # m.group(0) : tableau en entier
-    # m.group(1) : 1ère ligne
-    # m.group(5) : ligne de centrage
-    # m.group(7) : reste du tableau
-    # pour plus de renseignements : n est a adapter
-    # for i in range(n): print(i," : ",m.group(i))
+def table_parse(matchObj):
+    # Catching matchObj infos
+    if 'option' in matchObj.groupdict():
+    # If an option is specified
+        option = matchObj.group('option')
+    else:
+        option = ''
+    table = matchObj.group('table')
 
-    firstLine = [col for col in m.group(1).split("|") if col != ""]
-    centerLine = [col for col in m.group(5).split("|") if col != ""]
-    nbCol = len(firstLine)
-    result = "\\begin{center}\n\\begin{tabular}{|"
+    # Finding the number of rows
+    n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0]))
 
-    # Traitement du centrage
-    def dispoCell(cell):
-        liste = [char for char in cell if char != " "]
-        if liste[0] == ":" and liste[-1] == ":":
-            return 'c'
-        if liste[-1] == ":":
-            return 'r'
-        return 'l'
+    # Creating out string
+    out = '\\begin{center}\n\\begin{tabular}'
 
-    for i in range(nbCol):
-        if i < len(centerLine):
-            result += dispoCell(centerLine[i]) + "|"
+    # Treating option
+    if option != '':
+        if len(option) == 1:
+            out += '{' + ('|' + option) * n + '|}'
         else:
-            result += "l|"
+            options = option.split()
+            out += '{'
+            for op in options:
+                out += '|' + option
+            out += '|}'
+    else:
+        out += '{' + ('|' + 'l') * n + '|}'
 
-    result += "}\n\\hline\n"
+    out += '\n'
 
-    # Première colonne
-    result += firstLine[0]
-    for cell in firstLine[1:]:
-        result += " & " + cell
-    result += "\\\\\n "
+    # Filling the table
+    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]:
+    # For each line of the table
+        out += "\\hline\n"
+        for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]:
+        # For each element of the line
+            # Removing spaces from begining or end of element
+            element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
 
-    # Reste
-    for line in m.group(7).split('\n'):
-        tablLine = [cell for cell in line.split("|") if cell != ""]
-        if tablLine:
-            result += "\\hline\n" + tablLine[0]
-            for i, cell in enumerate(tablLine[1:]):
-                if i < nbCol - 1:
-                    result += " & " + cell
-            result += "\\\\\n"
+            # Adding the parsed element
+            out += block_parse(element) + '&'
+        out = out[0:-1] + '\\\\\n'
+    out = out[0:-3] + '\n\\hline\n\\end{tabular}\n\\end{center}\n'
 
-    return result + "\\hline \n\\end{tabular}\n\\end{center}\n"
+    return out
 
+def title_parse(matchObj):
+    level = len(matchObj.group('level')) - 1
+    star = matchObj.groupdict()['star'] is not None
+    title = matchObj.group('title')
+    paragraph = matchObj.group('paragraph')
+    out = ''
+    out += [r"\chapter",
+            r"\section",
+            r"\subsection",
+            r"\subsubsection",
+            r"\paragraph",
+            r"\subparagraph",
+            r'\subsubparagraph'][level]
+    if star:
+        out += '*'
+    out += '{' + inline_parse(title) + '}' + (r"\mbox{}\\" if level >= 5 else '') + '\n'
+    out += block_parse(paragraph)
+    return out
 
-def merge_inline_code(matchObj, inline_codes):
-    return inline_codes[int(matchObj.group('i')) - 1]
+def block_parse(block):
+    if re.sub(r'\n', '', block) == '':
+        return block
+    
+    out = ''
 
+    # A block can be several blocks itself
+    # Blocks can be :
+    #   - a paragraph
+    #   - block code
+    #   - itemize/enumerate
+    #   - block quote
+    #   - a table
+    #   - a latex \[ \]
+    #   - a tree or a ntree
+    #   - a comment
+    #   - something between two of the blocks above
+    # 'block' is going to be splitted into sub-blocks that will be treated recursively
+    # A block is some kind of node in a tree
+    # A leaf is a piece of inline text or an block "elementary brick"
 
-def merge_block_code(matchObj, block_codes):
-    return block_codes[int(matchObj.group('i')) - 1]
+    keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
 
+    detection_regex = {
+        'code':        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
+        'comment':     r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
+        'latex':       r"(\\\[(?:.|\n)*?\\\])",
+        'title':       r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
+        'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
+        'table':       r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
+        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
+    }
 
-def parse(paragraph):
-    # Parsing blocks of code
-    # Blocks are "encrypted" in the string and stocked in a list. Everything
-    # is merged afterwards.
-    block_codes = []
-    paragraph = re.sub(r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
-                       lambda x: sep_parse_block_code(x, block_codes), paragraph)
+    parse_regex = {
+        'code':        r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
+        'latex':       r"(?P<everything>.*)",
+        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':     r"(?:.|\n)*",
+        'enumerate':   r"(?:.|\n)*",
+        'table':       r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
+        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
+    }
+    
+    parse_repl = {
+        'code':        block_code_parse,
+        'comment':     "% \g<comment>",
+        'latex':       "\g<everything>",
+        'title':       title_parse,
+        'itemize':     itemize_parse,
+        'enumerate':   enumerate_parse,
+        'table':       table_parse,
+        'quotation':   quote_parse,
+        'tree' :       tree_parse
+    }
 
-    # Parsing inline code
-    # Inline codes are "encrypted" in the string and stocked in a list.
-    # Everything is merged afterwards.
-    inline_codes = []
-    paragraph = re.sub(
-        "`(?P<code>[^`]*)`", lambda x: sep_parse_inline_code(x, inline_codes), paragraph)
+    for key in keys:
+        if re.search(detection_regex[key], block):
+            sub_blocks = re.split(detection_regex[key],block)
+            if sub_blocks != ['', block, '']:
+                for sub_block in sub_blocks:
+                    out += block_parse(sub_block)
+                return out
+            break
 
-    # Parsing titles
-    # Each paragraph's string begins with some '#' so regex matches only the
-    # string's very beginning
-    paragraph = re.sub(r"^[#]{6} (?P<g>(.*))",
-                       r"\\subsubparagraph{\g<g>}", paragraph)
-    paragraph = re.sub(r"^[#]{5} (?P<g>(.*))",
-                       r"\\subparagraph{\g<g>}", paragraph)
-    paragraph = re.sub(r"^[#]{4} (?P<g>(.*))",
-                       r"\\paragraph{\g<g>}", paragraph)
-    paragraph = re.sub(r"^[#]{3} (?P<g>(.*))",
-                       r"\\subsection{\g<g>}", paragraph)
-    paragraph = re.sub(r"^[#]{2} (?P<g>(.*))", r"\\section{\g<g>}", paragraph)
-    paragraph = re.sub(r"^[#]{1} (?P<g>(.*))", r"\\chapter{\g<g>}", paragraph)
+    # Now we know that 'block' is an elementary brick, let's parse it
+    for key in keys:
+        if re.search(detection_regex[key], block):
+        # If the block is this type of block
+            return re.sub(parse_regex[key], parse_repl[key], block)
 
-    # Horizontal lines
-    paragraph = re.sub(r"^[-\*_]{3,}", "\\hrulefill\n", paragraph)
+    # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
+    return inline_parse(block)
 
-    # Removing decoration
-    paragraph = re.sub(r"\* \* \*", '', paragraph)
+# Inline parsing
 
-    # Puting a \noindent if line begins with '!'
-    paragraph = re.sub(r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", r'\\noindent\n\g<remainder>', paragraph)
+def inline_parse(line):
+    if re.sub(r'\n', '', line) == '':
+        return line
 
-    # Parsing inline quotes
-    # Uses non greedy regexp with lookbehinds/afters because for example : four o'clock in the mornin' MUSN'T be parsed !
-    # One should think "hello 'hello" hello' generates and error but it juste
-    # gives \say{hello \say{hello} hello} which is perfectly correct an
-    # renders "hello 'hello' hello" in LaTeX
-    paragraph = re.sub(
-        r"(?<!\w)\"(?=\w)(?P<quote>.*?)(?<=\w)\"(?!\w)", r"\say{\g<quote>}", paragraph)
-    paragraph = re.sub(
-        r"(?<!\w)'(?=\w)(?P<quote>.*?)(?<=\w)'(?!\w)", r"\say{\g<quote>}", paragraph)
+    out = ''
 
-    # Operations on non-LaTeX text
-    # For bold, italic etc. LaTeX must be put aside : paragraph is splitted
-    # into LaTeX parts and non-LaTeX parts which are called fragments
-    fragments = re.split(
-        r"(\$(?:(?!\$)(?:.|\n))*\$|\\\[(?:(?!(?:\\\[|\\\]))(?:.|\n))*\\\])", paragraph)
+    keys = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
 
-    # Each style has it own function that checks if there are no subtle syntax
-    # problems
-    for i in range(len(fragments)):
-        if fragments[i] != '' and fragments[i][0] != '$' and fragments[i][0:min(len(fragments[i]), 2)] != "\\[":
-            # Bold
-            fragments[i] = re.sub(
-                r"[*]{2}(?! )(?P<bold>(?:(?![*]{2})(?:.|\n))+)(?<! )[*]{2}", bolden, fragments[i])
+    detection_regex = {
+        'code':       r"(`(?:[^`\n]*?)`)",
+        'latex':      r"(\$(?:(?!\$).*)\$)",
+        'quote1':     r"(\"(?! )[^\"]*\")",
+        'quote2':     r"('(?! )[^'\n ]*')",
+        'bold':       r"(\*(?! )[^\*]*\*)",
+        'underline':  r"(_(?! )[^_]*_)",
+        'italic':     r"(%(?! )[^%]*%)",
+        'strike':     r"(~(?! )[^~]*~)"
+    }
+    parse_regex = {
+        'code':      r"`(?P<inside>[^`\n]*)`",
+        'latex':     r"\$(?P<inside>(?!\$).*)\$",
+        'quote1':    r"\"(?! )(?P<inside>[^\"]*?)\"",
+        'quote2':    r"'(?! )(?P<inside>[^'\n ]*?)'",
+        'bold':      r"\*(?! )(?P<inside>[^\*]*)\*",
+        'underline': r"_(?! )(?P<inside>[^_]*)_",
+        'italic':    r"%(?! )(?P<inside>[^%]*)%",
+        'strike':    r"~(?! )(?P<inside>[^~]*)~"
+    }
+    parse_borders = {
+        'code':      (r'\verb`',   '`'),
+        'latex':     ('',           ''),
+        'quote1':    (r'\say{',    '}'),
+        'quote2':    (r'\say{',    '}'),
+        'bold':      (r'\textbf{', '}'),
+        'underline': (r'\ul{',     '}'),
+        'italic':    (r'\textit{', '}'),
+        'strike':    (r'\st{',     '}'),
+    }
 
-            # Italic
-            fragments[i] = re.sub(
-                r"_(?! )(?P<it>(?:(?!_)(?:.|\n))+)(?<! )_", italien, fragments[i])  # So funny
+    for key in keys:
+        if re.search(detection_regex[key], line):
+            sub_lines = re.split(detection_regex[key], line)
+            if sub_lines != ['', line, '']:
+                for sub_line in sub_lines:
+                    out += inline_parse(sub_line)
+                return out
 
-            # Strikethrough
-            fragments[i] = re.sub(
-                r"~~(?! )(?P<strike>(?:(?!~~)(?:.|\n))+)(?<! )~~", striken, fragments[i])
+    # If we arrive here, that's because 'line' is an atom.
+    # Congratulations !
+    # Now we are going to parse it.
 
-            # Links
-            # Links like "[This is google](http://www.google.com)"
-            fragments[i] = re.sub(r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""",
-                                  "\\href{\g<link>}{\g<text>}", fragments[i])
-            # Links like "<http://www.google.com>"
-            fragments[i] = re.sub(
-                r"\<(?P<link>https?://[^ ]*)\>", "\\href{\g<link>}{\g<link>}", fragments[i])
-            # Links like " http://www.google.com "
-            fragments[i] = re.sub(
-                r" (?P<link>https?://[^ ]*) ", " \\href{\g<link>}{\g<link>} ", fragments[i])
-            # Replacing _ by \_ (only in non-LaTeX parts obviously !)
-            fragments[i] = re.sub("_", r"\_", fragments[i])
+    for key in keys:
+        if re.search(detection_regex[key], line):
+            inside = re.sub(parse_regex[key], r"\g<inside>", line)
+            return parse_borders[key][0] + (inline_parse(inside) if key not in ('code', 'latex') else inside) + parse_borders[key][1]
 
-    # Merging fragments
-    paragraph = ''
-    for fragment in fragments:
-        paragraph += fragment
+    # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
-    # New line
-    paragraph = re.sub(r"[ ]*<br>", r" \\newline", paragraph)
+    supl_regex = [
+        r"^[-\*_]{3,}",                                     # horizontal line
+        r"\* \* \*",                                        # removing decoration
+        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)",           # no indent
+        r"_",                                               # replacing _ by \_
+        r"&",                                               # replacing & by \&
+        r"#",                                               # replacing # by \#
+        r"%",                                               # replacing % by \%
+        r"€",                                               # replacing € by \euro{}
+        r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
+        r"\<(?P<link>https?://[^ ]*)\>",                    # links
+        r"[ ]*/(?=\n|$)",                                   # newline
+        r"(?<!\\)LaTeX"                                     # LaTeX
+    ]
+    supl_repl = [
+        r"\\hrulefill\n",                                    
+        r'',                                                 
+        r'\\noindent\n\g<remainder>',                       
+        r"\_",                                              
+        r"\&",                                              
+        r"\#",                                              
+        r"\%",                                              
+        r"\euro{}",                                         
+        r"\\href{\g<link>}{\g<text>}",                       
+        r"\\href{\g<link>}{\g<link>}",                       
+        r"\\newline",  
+        r"\\LaTeX{}"                                    
+    ]
 
-    # Replacing x by \x
-    # when x is a specific key word in LaTeX (and x != _)
-    fragments[i] = re.sub("&", r"\&", fragments[i])
-    fragments[i] = re.sub("#", r"\#", fragments[i])
+    for i in range(len(supl_regex)):
+        line = re.sub(supl_regex[i], supl_repl[i], line)
 
-    # Trees
-    # Documentation in function tree_parse()
-    paragraph = re.sub(
-        r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", tree_parse, paragraph)
-
-    # nTrees
-    # Documentation in function tree_parse()
-    paragraph = re.sub(
-        r"!\[(?:(?P<option>[a-z])-)?nTREE (?P<tree>(?:(?!\]!).)*)\]!", ntree_parse, paragraph)
-
-    # Comments
-    paragraph = re.sub(
-        r"<!\-\-(?P<comment>(?:(?!\-\->).)*)\-\->", "% \g<comment>", paragraph)
-
-    # Quotes
-    # Documentation in function quote_parse()
-    paragraph = re.sub(
-        r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n(?:\((?P<reference>.+)\))?", quote_parse, paragraph)
-
-    # Itemize
-    # Item levels are parsed in the decreasing order
-    # More documentation in function itemize_parse()
-    for i in range(4, 0, -1):
-        pattern = r"(?:^[ ]{" + str(4 * i) + r"}|(?<=\n)[ ]{" + str(4 * i) + \
-            r"})- (?:(?!(?:\n\n|\n[ ]{0," + str(4 * i - 2) + r"}- ))(?:.|\n))*"
-        paragraph = re.sub(pattern, lambda x: itemize_parse(i, x), paragraph)
-
-    # Enumerate
-    # Same : more documentation in function parse_itemize()
-    for i in range(4, 0, -1):
-        pattern = r"(?:^[ ]{" + str(4 * i) + r"}|(?<=\n)[ ]{" + str(4 * i) + \
-            r"})[0-9]+\. (?:(?!(?:\n\n|\n[ ]{0," + \
-            str(4 * i - 2) + r"}[0-9]+\. ))(?:.|\n))*"
-        paragraph = re.sub(pattern, lambda x: enumerate_parse(i, x), paragraph)
-
-    # Parsing tables
-    paragraph = re.sub(
-        r"((\|[^\n|]+)*)(\s)*\|?(\s)*((\| ?:?-+:? ?)+)\|[ \t]*\n[ \t]*((((\|([^|\n]*))*)\|?[ \t]*\n?)+)", table_parse, paragraph)
-
-    # Merging inline code
-    paragraph = re.sub(
-        r"£%£%§²&(?P<i>[0-9]+)£%£%§²&", lambda x: merge_inline_code(x, inline_codes), paragraph)
-
-    # Merging blocks of code
-    paragraph = re.sub(
-        r"&é\(\]°\(\-è\*@\|\{\)(?P<i>[0-9]+)&é\(\]°\(\-è\*@\|\{\)", lambda x: merge_block_code(x, block_codes), paragraph)
-
-    return paragraph
+    return line
 
 # Main
 
@@ -518,6 +530,16 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
+
+    # If a tree is detected, tikz and his libraries are loaded and lua option is put on True
+    ARGV['lua'] = ARGV['lua'] or tikz_needed
+
+    # Text encoding packages
+    if ARGV['lua']:
+        output.write("\\usepackage{fontspec}\n")
+    else:
+        output.write("\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}\n")
+
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -530,7 +552,6 @@ def main():
             additionnal_packages = temp.split(', ')
 
     packages = ["[frenchb]{babel}",
-                "{fontspec}",
                 "[dvipsnames]{xcolor}",
                 "[a4paper]{geometry}",
                 "{amsmath}",
@@ -544,10 +565,6 @@ def main():
                 "{hyperref}",
                 "[official]{eurosym}"] + additionnal_packages
 
-    # If a tree is detected, tikz and his libraries are loaded
-    # Note that this will require LuaLateX to compile !
-    tikz_needed = re.search(
-        r"!\[(?:(?P<option>[a-z])-)?TREE (?P<tree>(?:(?!\]!).)*)\]!", contents) is not None
     if tikz_needed:
         packages.append('{tikz}')
 
@@ -562,10 +579,14 @@ def main():
             output.write(
                 "\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
 
+    # RobotMono font
+    if ARGV['robot']:
+        output.write("\setmonofont{[RobotoMono-Regular.ttf]}\n")
+
     # Syntax highliting
     if '`' in contents:
         # If the document is likely to contain a piece of code
-        output.write(r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},stringstyle=\color{Green},commentstyle=\color{Gray},identifierstyle=\color{NavyBlue},numberstyle=\color{Gray},numbers=left,breaklines=true,breakatwhitespace=true,breakautoindent=true,breakindent=5pt,showstringspaces=false}" + '\n')
+        output.write(r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},stringstyle=\color{Green},commentstyle=\color{Gray},identifierstyle=\color{NavyBlue},numberstyle=\color{Gray},numbers=left,breaklines=true,breakatwhitespace=true,breakautoindent=true,breakindent=5pt,showstringspaces=false, tabsize=4}" + '\n')
 
     # Presentation
     if 'title' in ARGV:
@@ -574,8 +595,6 @@ def main():
         output.write(r"\author{" + ARGV['author'] + "}\n")
     if 'date' in ARGV:
         output.write(r"\date{" + ARGV['date'] + "}\n")
-
-    output.write("\setmonofont{[RobotoMono-Regular.ttf]}\n")
 
     output.write("\\begin{document}\n")
     output.write("\\nocite{*}\n")
@@ -588,19 +607,7 @@ def main():
     output.write("\n")
 
     # Creation of the main string
-    main_string = ""
-
-    # Creation of paragraphs
-    # The text is splitted into different paragraphs, which makes the parsing easier
-    # A paragraph begins with some #s and a title
-    paragraphs = re.split(r"(#+ [^\n]*(?:(?!\n#+ )(?:.|\n))*)", contents)
-
-    # Parsing each paragraph and adding it to the main string
-    for paragraph in paragraphs:
-        main_string += parse(paragraph)
-
-    # Converting euro symbol to LaTeX command
-    main_string = re.sub(r"€", "\\euro{}", main_string)
+    main_string = block_parse(contents)
 
     # Formating line breaks
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
