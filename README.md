@@ -210,11 +210,11 @@ Those three changes bring more strictness compared to simple Markdown but it wil
 
 This line : `![TREE R 1 N 2 F 3 F 4 F 5]!`; will be converted to some LaTeX wich will look like this :
 
-[Binary tree](http://www.mirari.fr/ShRU)
+![Binary tree](http://www.mirari.fr/ShRU)
 
 This line : `![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!`; will be converted to some LaTeX wich will look like this :
 
-[Multiple tree](http://www.mirari.fr/fi6Z)
+![Multiple tree](http://www.mirari.fr/fi6Z)
 
 ## Code
 
@@ -243,4 +243,4 @@ let heap_sort a = let n = ref (vect_length a - 1) in
 
 Will produce this :
 
-[Some code in ocaml](http://www.mirari.fr/ogMn)
+![Some code in ocaml](http://www.mirari.fr/ogMn)
