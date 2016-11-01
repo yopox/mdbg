@@ -304,7 +304,7 @@ def table_parse(matchObj):
     return out
 
 def title_parse(matchObj):
-    level = len(matchObj.group('level'))
+    level = len(matchObj.group('level')) - 1
     star = matchObj.groupdict()['star'] is not None
     title = matchObj.group('title')
     paragraph = matchObj.group('paragraph')
@@ -318,13 +318,14 @@ def title_parse(matchObj):
             r'\subsubparagraph'][level]
     if star:
         out += '*'
-    out += '{' + inline_parse(title) + '}' + '\n'
+    out += '{' + inline_parse(title) + '}' + (r"\mbox{}\\" if level >= 5 else '') + '\n'
     out += block_parse(paragraph)
     return out
 
 def block_parse(block):
-    if block in ('', '\n'):
+    if re.sub(r'\n', '', block) == '':
         return block
+    
     out = ''
 
     # A block can be several blocks itself
@@ -345,39 +346,39 @@ def block_parse(block):
     keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
 
     detection_regex = {
-        'code':      r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
-        'comment':   r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
-        'latex':     r"(\\\[(?:.|\n)*?\\\])",
-        'title':     r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
-        'itemize':   r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
-        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
-        'table':     r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
-        'quotation': r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
-        'tree' :     r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
+        'code':        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
+        'comment':     r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
+        'latex':       r"(\\\[(?:.|\n)*?\\\])",
+        'title':       r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
+        'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
+        'table':       r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
+        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
     }
 
     parse_regex = {
-        'code':      r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
-        'comment':   r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
-        'latex':     "(?P<everything>.*)",
-        'title':     r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)\n(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
-        'itemize':   r"(?:.|\n)*",
-        'enumerate': r"(?:.|\n)*",
-        'table':     r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
-        'quotation': r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
-        'tree' :     r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
+        'code':        r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
+        'latex':       r"(?P<everything>.*)",
+        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':     r"(?:.|\n)*",
+        'enumerate':   r"(?:.|\n)*",
+        'table':       r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
+        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
     }
     
     parse_repl = {
-        'code':      block_code_parse,
-        'comment':   "% \g<comment>",
-        'latex':     "\g<everything>",
-        'title':     title_parse,
-        'itemize':   itemize_parse,
-        'enumerate': enumerate_parse,
-        'table':     table_parse,
-        'quotation': quote_parse,
-        'tree' :     tree_parse,
+        'code':        block_code_parse,
+        'comment':     "% \g<comment>",
+        'latex':       "\g<everything>",
+        'title':       title_parse,
+        'itemize':     itemize_parse,
+        'enumerate':   enumerate_parse,
+        'table':       table_parse,
+        'quotation':   quote_parse,
+        'tree' :       tree_parse
     }
 
     for key in keys:
@@ -401,21 +402,22 @@ def block_parse(block):
 # Inline parsing
 
 def inline_parse(line):
-    if line in ('', '\n'):
+    if re.sub(r'\n', '', line) == '':
         return line
+
     out = ''
 
     keys = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
 
     detection_regex = {
-        'code':      r"(`(?:[^`\n]*?)`)",
-        'latex':     r"(\$(?:(?!\$).*)\$)",
-        'quote1':    r"(\"(?! )[^\"]*\")",
-        'quote2':    r"('(?! )[^'\n ]*')",
-        'bold':      r"(\*(?! )[^\*]*\*)",
-        'underline': r"(_(?! )[^_]*_)",
-        'italic':    r"(%(?! )[^%]*%)",
-        'strike':    r"(~(?! )[^~]*~)"
+        'code':       r"(`(?:[^`\n]*?)`)",
+        'latex':      r"(\$(?:(?!\$).*)\$)",
+        'quote1':     r"(\"(?! )[^\"]*\")",
+        'quote2':     r"('(?! )[^'\n ]*')",
+        'bold':       r"(\*(?! )[^\*]*\*)",
+        'underline':  r"(_(?! )[^_]*_)",
+        'italic':     r"(%(?! )[^%]*%)",
+        'strike':     r"(~(?! )[^~]*~)"
     }
     parse_regex = {
         'code':      r"`(?P<inside>[^`\n]*)`",
@@ -453,7 +455,7 @@ def inline_parse(line):
     for key in keys:
         if re.search(detection_regex[key], line):
             inside = re.sub(parse_regex[key], r"\g<inside>", line)
-            return parse_borders[key][0] + (inline_parse(inside) if key is not 'code' else inside) + parse_borders[key][1]
+            return parse_borders[key][0] + (inline_parse(inside) if key not in ('code', 'latex') else inside) + parse_borders[key][1]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
@@ -468,7 +470,7 @@ def inline_parse(line):
         r"€",                                               # replacing € by \euro{}
         r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
         r"\<(?P<link>https?://[^ ]*)\>",                    # links
-        r"[ ]*<br>",                                        # newline
+        r"[ ]*/(?=\n|$)",                                   # newline
         r"(?<!\\)LaTeX"                                     # LaTeX
     ]
     supl_repl = [
