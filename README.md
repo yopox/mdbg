@@ -196,13 +196,9 @@ Command : `![c-TREE]!` or `![c-nTREE]!`
 
 ### Miscellaneous
 
-By default, no indentation will be added when you begin a new line or next to a section definition.
+Add a `!` at the begining of a line to have a `\noindent` before this line in the _LaTeX_ generated file.
 
-You can add one by putting whether four spaces or a tabulation at the begining of the line.
-
-A line break will add a `\\` or `\newline` in the LaTeX generated file.
-
-Those three changes bring more strictness compared to simple Markdown but it will allow you to decide everything you want about your layout.
+Add a `/` at the end of a line to have a line break.
 
 # Examples
 
