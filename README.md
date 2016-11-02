@@ -193,6 +193,42 @@ Command : `![c-TREE]!` or `![c-nTREE]!`
 ![c-nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
 
+### New text features
+
+#### Superscript
+
+You can use text in superscript :
+
+```mdbg
+We live in Paris, in the 5^{th}
+```
+
+#### Subscript
+
+You can use text in subscript :
+
+```mdbg
+This is a normal text_{this one is subscripted}
+```
+
+#### Footnotes
+
+This is how to use footnotes :
+
+```mdbg
+I never work ***{almost}
+```
+
+#### Colored texts
+
+How to use colored texts :
+
+```mdbg
+I love {red}[red] and {green}[blue witten in green] !
+```
+
+A list of all possible colors is given at the end of this readme.
+
 ### Miscellaneous
 
 Add a `!` at the begining of a line to have a `\noindent` before this line in the _LaTeX_ generated file.
@@ -239,6 +275,10 @@ let heap_sort a = let n = ref (vect_length a - 1) in
 Will produce this :
 
 ![Some code in ocaml](http://www.mirari.fr/ogMn)
+
+# Comprehensive list of colors
+
+![Colors](http://www.mirari.fr/VUmg)
 
 # mdbg2tex help
 ```
