@@ -1,13 +1,12 @@
-# Markdown flavoured by BGs
+# BG-flavoured markdown
 
-# Markdown BG presentation
 Mardown BG (_.mdbg_) is an improvement of the existing [Mardown](https://fr.wikipedia.org/wiki/Markdown) language.
 
-It provides some more functionnalities and syntaxes which make it possible to generate a fresh, correct and nice _.tex_ document.
+It provides nice features which make it possible to generate a fresh, correct and nice _.tex_ document.
 
 # Syntax
 
-## Markdown flavoured
+## Markdown-flavoured
 
 ### Headers
 
@@ -45,19 +44,19 @@ Translations :
 In markdown :
 
 ```md
-Bold : this is **bold** or __bold__
+**bold** or __bold__
 ```
 
 In mdbg :
 
 ```mdbg
-Bold : this is *bold*
+*bold*
 ```
 
-#### Underscore
+#### Underline
 
 ```mdbg
-Underline : this is _underline_
+_underline_
 ```
 
 #### Italic
@@ -65,13 +64,13 @@ Underline : this is _underline_
 In markdown :
 
 ```md
-Italic : This is _italic_ or *italic*
+_italic_ or *italic*
 ```
 
 In mdbg :
 
 ```mdbg
-Italic : This is %italic%
+%italic%
 ```
 
 #### Strikethrough
@@ -79,18 +78,18 @@ Italic : This is %italic%
 In markdown :
 
 ```md
-Strikethrough : this is ~~strikethrough~~
+~~strikethrough~~
 ```
 
 In mdbg :
 
 ```mdbg
-Strikethrough : this is ~strikethrough~
+~strikethrough~
 ```
 
 ### Lists
 
-Small changes.
+Small changes have been made.
 
 This is a list in mdbg :
 
@@ -103,7 +102,7 @@ Neutral text :
     - third item
 ```
 
-and an enumerated list
+and an enumerated list :
 
 ```mdbg
     1. first item
@@ -113,7 +112,7 @@ and an enumerated list
     3. third item
 ```
 
-The indentations can be whether four spaces or a tabulation but every item has to be idented even the first.
+The indentations can be four spaces or a tabulation but each item has to be idented.
 
 ### Links
 
@@ -129,7 +128,7 @@ Like in Markdown.
 
 ### Tables
 
-Like Markdown, without 2nd line.
+Like Markdown, without the 2nd line.
 
 In mdbg :
 
@@ -204,11 +203,11 @@ Add a `/` at the end of a line to have a line break.
 
 ## Trees
 
-This line : `![TREE R 1 N 2 F 3 F 4 F 5]!`; will be converted to some LaTeX wich will look like this :
+The command `![TREE R 1 N 2 F 3 F 4 F 5]!` produces the following result in LaTeX :
 
 ![Binary tree](http://www.mirari.fr/ShRU)
 
-This line : `![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!`; will be converted to some LaTeX wich will look like this :
+the command `![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!` produces the following result in LaTeX :
 
 ![Multiple tree](http://www.mirari.fr/fi6Z)
 

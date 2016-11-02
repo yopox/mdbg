@@ -110,7 +110,7 @@ def arg_treatment():
 
     if ARGV['output'] == '':
         ARGV['output'] = re.sub(
-            r"^(?P<name>(?:(?!\.md$).)+)(?:\.md$)?", r"\g<name>.tex", ARGV['input'])
+            r"^(?P<name>(?:(?!\.mdbg$).)+)(?:\.mdbg$)?", r"\g<name>.tex", ARGV['input'])
 
 # Parsing functions
 
@@ -299,7 +299,7 @@ def table_parse(matchObj):
             # Adding the parsed element
             out += block_parse(element) + '&'
         out = out[0:-1] + '\\\\\n'
-    out = out[0:-3] + '\n\\hline\n\\end{tabular}\n\\end{center}\n'
+    out = out[0:-3] + '\n\\end{tabular}\n\\end{center}\n'
 
     return out
 
@@ -325,7 +325,7 @@ def title_parse(matchObj):
 def block_parse(block):
     if re.sub(r'\n', '', block) == '':
         return block
-    
+
     out = ''
 
     # A block can be several blocks itself
@@ -368,7 +368,7 @@ def block_parse(block):
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
     }
-    
+
     parse_repl = {
         'code':        block_code_parse,
         'comment':     "% \g<comment>",
@@ -474,18 +474,18 @@ def inline_parse(line):
         r"(?<!\\)LaTeX"                                     # LaTeX
     ]
     supl_repl = [
-        r"\\hrulefill\n",                                    
-        r'',                                                 
-        r'\\noindent\n\g<remainder>',                       
-        r"\_",                                              
-        r"\&",                                              
-        r"\#",                                              
-        r"\%",                                              
-        r"\euro{}",                                         
-        r"\\href{\g<link>}{\g<text>}",                       
-        r"\\href{\g<link>}{\g<link>}",                       
-        r"\\newline",  
-        r"\\LaTeX{}"                                    
+        r"\\hrulefill\n",
+        r'',
+        r'\\noindent\n\g<remainder>',
+        r"\_",
+        r"\&",
+        r"\#",
+        r"\%",
+        r"\euro{}",
+        r"\\href{\g<link>}{\g<text>}",
+        r"\\href{\g<link>}{\g<link>}",
+        r"\\newline",
+        r"\\LaTeX{}"
     ]
 
     for i in range(len(supl_regex)):
