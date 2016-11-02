@@ -407,55 +407,107 @@ def inline_parse(line):
 
     out = ''
 
-    keys = ['code', 'latex', 'quote1', 'quote2', 'bold', 'underline', 'italic', 'strike']
+    keys = {
+        1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript', 'subscript', 'bold', 'underline', 'italic', 'strike'],
+        2: ['color', 'link1', 'link2']
+    }
 
     detection_regex = {
-        'code':       r"(`(?:[^`\n]*?)`)",
-        'latex':      r"(\$(?:(?!\$).*)\$)",
-        'quote1':     r"(\"(?! )[^\"]*\")",
-        'quote2':     r"('(?! )[^'\n ]*')",
-        'bold':       r"(\*(?! )[^\*]*\*)",
-        'underline':  r"(_(?! )[^_]*_)",
-        'italic':     r"(%(?! )[^%]*%)",
-        'strike':     r"(~(?! )[^~]*~)"
-    }
-    parse_regex = {
-        'code':      r"`(?P<inside>[^`\n]*)`",
-        'latex':     r"\$(?P<inside>(?!\$).*)\$",
-        'quote1':    r"\"(?! )(?P<inside>[^\"]*?)\"",
-        'quote2':    r"'(?! )(?P<inside>[^'\n ]*?)'",
-        'bold':      r"\*(?! )(?P<inside>[^\*]*)\*",
-        'underline': r"_(?! )(?P<inside>[^_]*)_",
-        'italic':    r"%(?! )(?P<inside>[^%]*)%",
-        'strike':    r"~(?! )(?P<inside>[^~]*)~"
-    }
-    parse_borders = {
-        'code':      (r'\verb`',   '`'),
-        'latex':     ('',           ''),
-        'quote1':    (r'\say{',    '}'),
-        'quote2':    (r'\say{',    '}'),
-        'bold':      (r'\textbf{', '}'),
-        'underline': (r'\ul{',     '}'),
-        'italic':    (r'\textit{', '}'),
-        'strike':    (r'\st{',     '}'),
+        1 : {
+                'code':        r"(`(?:[^`\n]*?)`)",
+                'latex':       r"(\$(?:(?!\$).*)\$)",
+                'quote1':      r"(\"(?! )[^\"]*\")",
+                'quote2':      r"('(?! )[^'\n ]*')",
+                'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
+                'superscript': r"(\^\{[^\n\{\}]*\})",
+                'subscript':   r"(_\{[^\n\{\}]*\})",
+                'bold':        r"(\*(?! )[^\*]*\*)",
+                'underline':   r"(_(?! )[^_]*_)",
+                'italic':      r"(%(?! )[^%]*%)",
+                'strike':      r"(~(?! )[^~]*~)"
+            },
+        2:  {
+                'color':       r"(\{[^\n\{\}]*\}\[[^\n\{\}]*\])",
+                'link1':       r"(\<https?://[^ ]*\>)",
+                'link2':       r"(\[.*\]\([^ ]*(?: \".*\")?\))"
+            }
     }
 
-    for key in keys:
-        if re.search(detection_regex[key], line):
-            sub_lines = re.split(detection_regex[key], line)
-            if sub_lines != ['', line, '']:
-                for sub_line in sub_lines:
-                    out += inline_parse(sub_line)
-                return out
+    parse_regex = {
+        1:  {
+                'code':        r"`(?P<inside>[^`\n]*)`",
+                'latex':       r"\$(?P<inside>(?!\$).*)\$",
+                'quote1':      r"\"(?! )(?P<inside>[^\"]*?)\"",
+                'quote2':      r"'(?! )(?P<inside>[^'\n ]*?)'",
+                'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
+                'superscript': r"\^\{(?P<inside>[^\n\{\}]*)\}",
+                'subscript':   r"_\{(?P<inside>[^\n\{\}]*)\}",
+                'bold':        r"\*(?! )(?P<inside>[^\*]*)\*",
+                'underline':   r"_(?! )(?P<inside>[^_]*)_",
+                'italic':      r"%(?! )(?P<inside>[^%]*)%",
+                'strike':      r"~(?! )(?P<inside>[^~]*)~"
+            },
+        2:  {
+                'color':       r"\{(?P<left>[^\n\{\}]*)\}\[(?P<right>[^\n\{\}]*)\]",
+                'link1':       r"\<(?P<left>(?P<right>https?://[^ ]*))\>",
+                'link2':       r"\[(?P<left>.*)\]\((?P<right>[^ ]*)( \".*\")?\)"
+            }
+    }
+
+    parse_borders = {
+        1:  {
+                'code':        (r'\verb`',            '`'),
+                'latex':       ('',                    ''),
+                'quote1':      (r'\say{',             '}'),
+                'quote2':      (r'\say{',             '}'),
+                'footnote':    (r'\footnote{',        '}'),
+                'superscript': (r'\textsuperscript{', '}'),
+                'subscript':   (r'\textsubscript{',   '}'),
+                'bold':        (r'\textbf{',          '}'),
+                'underline':   (r'\ul{',              '}'),
+                'italic':      (r'\textit{',          '}'),
+                'strike':      (r'\st{',              '}')
+            },
+        2:  {
+                'color':       (r'\color{',   '}{',   '}'),
+                'link1':       (r'\href{',    '}{',   '}'),
+                'link2':       (r'\href{',    '}{',   '}')
+            }
+    }
+
+    for i in (1, 2):
+        for key in keys[i]:
+            if re.search(detection_regex[i][key], line):
+                sub_lines = re.split(detection_regex[i][key], line)
+                if sub_lines != ['', line, '']:
+                    for sub_line in sub_lines:
+                        out += inline_parse(sub_line)
+                    return out
+                break
+        else:
+            continue
+        break
 
     # If we arrive here, that's because 'line' is an atom.
     # Congratulations !
     # Now we are going to parse it.
 
-    for key in keys:
-        if re.search(detection_regex[key], line):
-            inside = re.sub(parse_regex[key], r"\g<inside>", line)
-            return parse_borders[key][0] + (inline_parse(inside) if key not in ('code', 'latex') else inside) + parse_borders[key][1]
+    for i in (1, 2):
+        for key in keys[i]:
+            if re.search(detection_regex[i][key], line):
+                if i == 1:
+                    inside = re.sub(parse_regex[i][key], r"\g<inside>", line)
+                    if key in ('code', 'latex'):
+                        return parse_borders[i][key][0] + inside + parse_borders[i][key][1]
+                    else:
+                        return parse_borders[i][key][0] + inline_parse(inside) + parse_borders[i][key][1]
+                else:
+                    left =  re.sub(parse_regex[i][key], r"\g<left>", line)
+                    right = re.sub(parse_regex[i][key], r"\g<right>", line)
+                    if key in ('link1', 'link2'):
+                        return parse_borders[i][key][0] + left + parse_borders[i][key][1] + right + parse_borders[i][key][2]
+                    else:
+                        return parse_borders[i][key][0] + left + parse_borders[i][key][1] + inline_parse(right) + parse_borders[i][key][2]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
 
@@ -468,8 +520,6 @@ def inline_parse(line):
         r"#",                                               # replacing # by \#
         r"%",                                               # replacing % by \%
         r"€",                                               # replacing € by \euro{}
-        r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
-        r"\<(?P<link>https?://[^ ]*)\>",                    # links
         r"[ ]*/(?=\n|$)",                                   # newline
         r"(?<!\\)LaTeX"                                     # LaTeX
     ]
@@ -482,8 +532,6 @@ def inline_parse(line):
         r"\#",
         r"\%",
         r"\euro{}",
-        r"\\href{\g<link>}{\g<text>}",
-        r"\\href{\g<link>}{\g<link>}",
         r"\\newline",
         r"\\LaTeX{}"
     ]
@@ -552,12 +600,13 @@ def main():
             additionnal_packages = temp.split(', ')
 
     packages = ["[frenchb]{babel}",
-                "[dvipsnames]{xcolor}",
+                "[usenames,dvipsnames,svgnames,table]{xcolor}",
                 "[a4paper]{geometry}",
                 "{amsmath}",
                 "{amssymb}",
                 "{listings}",
                 "{enumerate}",
+                "{xltxtra}"
                 "{epigraph}",
                 "{soul}",
                 "{csquotes}",
