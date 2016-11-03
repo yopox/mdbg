@@ -70,7 +70,7 @@ def block_parse(block):
         return block
     
     out = ''
-
+    
     # A block can be several blocks itself
     # Blocks can be :
     #   - block code
@@ -134,22 +134,22 @@ def inline_parse(line):
     keys = ['code', 'latex', 'bold', 'italic', 'strike']
 
     detection_regex = {
-        'code':       r"(`(?:[^`\n]*?)`)",
-        'latex':      r"(\$(?:(?!\$).*)\$)",
-        'bold':       r"(\*\*(?! )(?:(?!\*\*)(?:.|\n))*\*\*)",
-        'italic':     r"(_(?! )[^_]*_)",
-        'strike':     r"(~~(?! )(?:(?!~~)(?:.|\n))*~~)"
+        'code':      r"(`[^`\n]*`)",
+        'latex':     r"(\$[^\$]*\$)",
+        'bold':      r"(\*\*(?! )(?:(?:(?!\*\*).)*)\*\*)",
+        'italic':    r"(_(?! )[^_]*_)",
+        'strike':    r"(~~(?! )(?:(?:(?!~~).)*)~~)"
     }
     parse_regex = {
         'code':      r"`(?P<inside>[^`\n]*)`",
-        'latex':     r"\$(?P<inside>(?!\$).*)\$",
-        'bold':      r"(\*\*(?! )(?P<inside>(?!\*\*)(?:.|\n))*\*\*)",
+        'latex':     r"\$(?P<inside>[^\$]*)\$",
+        'bold':      r"\*\*(?! )(?P<inside>(?:(?:(?!\*\*).)*))\*\*",
         'italic':    r"_(?! )(?P<inside>[^_]*)_",
-        'strike':    r"(~~(?! )(?P<inside>(?!~~)(?:.|\n))*~~)"
+        'strike':    r"~~(?! )(?P<inside>(?:(?:(?!~~).)*))~~"
     }
     parse_borders = {
         'code':      '`',
-        'latex':     '\$',
+        'latex':     '$',
         'bold':      '*',
         'italic':    '%',
         'strike':    '~',
@@ -162,6 +162,7 @@ def inline_parse(line):
                 for sub_line in sub_lines: # we parse every sublines and we add them
                     out += inline_parse(sub_line)
                 return out
+            break
 
     # If we arrive here, that's because 'line' is an atom.
     # Congratulations !
