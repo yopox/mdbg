@@ -6,7 +6,7 @@
 import re
 import sys
 
-# Foo
+# Will be turned on if there are some trees in the document
 global tikz_needed
 tikz_needed = False
 
@@ -60,7 +60,6 @@ global ARGV
 ARGV = {
     'output': '',
     'input': '',
-    'documentclass': 'report',
     'tableofcontents': True,
     'help': False,
     'lua': False,
@@ -71,11 +70,11 @@ ARGV = {
 def arg_treatment():
     global ARGV
 
-    # input
+    # Input
     if len(sys.argv) > 1:
         ARGV['input'] = sys.argv[1]
 
-    # list of possible options
+    # List of possible options
     options_with_args = {
         '-o': 'output',
         '--ouput': 'output',
@@ -101,7 +100,7 @@ def arg_treatment():
         '-r': 'robot'
     }
 
-    # options treatment
+    # Options treatment
     for i in range(2, len(sys.argv)):
         if sys.argv[i] in options_with_args and i + 1 < len(sys.argv):
             ARGV[options_with_args[sys.argv[i]]] = sys.argv[i + 1]
@@ -110,30 +109,30 @@ def arg_treatment():
 
     if ARGV['output'] == '':
         ARGV['output'] = re.sub(
-            r"^(?P<name>(?:(?!\.mdbg$).)+)(?:\.mdbg$)?", r"\g<name>.tex", ARGV['input'])
+            r"(?P<name>(?:(?!(?:\.[^\.]+$)).)*)(\.[^\.]+$)?", r"\g<name>.tex", ARGV['input'])
 
 # Parsing functions
 
 # Block parsing
 
-def block_code_parse(matchObj):
+def block_code_parse(matchObj): # to parse blocks of code
     # Option syntax : "java" if wanted language is java, and "nb-java" if
     # wanted language is java AND non breaking is wanted
     code = matchObj.group('code')
     __option = matchObj.group('option')
-    option = re.sub(r"nb\-(?P<option>.*)", r"\g<option>", __option)
-    non_breaking = __option != option
+    option = re.sub(r"nb\-(?P<option>.*)", r"\g<option>", __option) # we remove 'nb-' if it's in the option
+    non_breaking = __option != option # if those two are different, that's because non breaking is wanted
     out = ''
     if non_breaking:
-        # putting the code in a minipage will prevent from page breaking
+        # Putting the code in a minipage will prevent from page breaking
         out += "\\begin{minipage}{\\linewidth}\n"
     if option != '':
         if option.lower() == 'ocaml':
-            # because lstlisting doesn't know ocaml
+            # Because lstlisting doesn't know oCaml (and we love oCaml don't we ?)
             option = 'Caml'
         out += r"\lstset{language=" + option + "}\n"
     out += "\\begin{lstlisting}\n"
-    out += code
+    out += code # the code is not modified
     out += "\n\\end{lstlisting}"
     if non_breaking:
         out += "\\begin{minipage}{\\linewidth}\n"
@@ -143,15 +142,15 @@ def tree_parse(matchObj):
     global tikz_needed
     tikz_needed = True
     if "nTREE" in matchObj.group(0):
-        return ntree_parse(matchObj)
+        return ntree_parse(matchObj)       # to parsed multiple trees
     else:
-        return binary_tree_parse(matchObj)
+        return binary_tree_parse(matchObj) # to parse binary trees
 
 def binary_tree_parse(matchObj):
-    # Possible options :
+    # Only possible option :
     #   - c : center
     option = matchObj.group('option')
-    nodes = [list(x) for x in re.findall(r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
+    nodes = [list(x) for x in re.findall(r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))] # nodes contains every couple like 'L 42' (see readme.md for the syntax)
     l = len(nodes)
     out = "\n\\begin{center}" if option == 'c' else ""
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
@@ -186,144 +185,106 @@ def ntree_parse(matchObj):
     tree = matchObj.group('tree')
     out = "\n\\begin{center}" if option == 'c' else ""
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]\n\\graph[binary tree layout, fresh nodes]{\n"
-    out += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
+    out += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "") # the syntax we use is the syntax used by the sub package 'graph' of TikZ
     return out
 
 
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
-    quotes = [ x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n' ]
-    try:
+    quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n']
+    if matchObj.groupdict()['reference'] != None:
         # For quotations with a reference
         reference = matchObj.group('reference')
         out = ''
         for quote in quotes:
-            out += block_parse(quote) + r"\\"
-        return r"\epigraph{" + out[0:-2] + "}" + "{" + block_parse(reference) + "}"
-    except:
+            out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
+        return r"\epigraph{" + out[0:-2] + "}" + "{" + block_parse(reference) + "}" # we use package epigraph for referenced quotations
+    else:
         # For quotations without a reference
-        out = "\n\\medskip\n\\begin{displayquote}\n"
+        out = "\n\\medskip\n\\begin{displayquote}\n" # we use 'csquote' package for non referenced quotations
         for quote in quotes:
-            out += block_parse(quote) + r"\\"
-        return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n"
+            out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
+        return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n" # we remove the extra '\\'
 
 
 def itemize_parse(matchObj):
-    # Catching the itemize block from the match object
     itemize = matchObj.group(0)
-
-    # Removing left indentation
-    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
-
-    # Splitting items and removing '-' symbol from each item
-    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize)
-
-    # Removing '' and '\n' from items
-    items = [ x for x in items if x!='' and x != '\n']
-
-
-    # Generate out string
+    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize) # we remove left indentation
+    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize) # we split items and remove '-' symbol from each item
+    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
     out = "\\begin{itemize}\n"
-
-    # Adding parsed items
     for item in items:
-        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{itemize}\n"
-
     return out
 
 
 def enumerate_parse(matchObj):
-    # Catching the itemize block from the match object
-    itemize = matchObj.group(0)
-
-    # Removing left indentation
-    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
-
-    # Splitting items and removing '-' symbol from each item
-    items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", itemize)
-
-    # Removing '' and '\n' from items
-    items = [ x for x in items if x != '' and x != '\n' ]
-
-    # Generate out string
+    enum = matchObj.group(0)
+    enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum) # we remove left indentation
+    items = re.split(r"(?:^|(?<=\n))[0-9]+\.  ((?:.|\n(?!-))*)", enum) # we split items and remove things like '2.' from each item
+    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
     out = "\\begin{enumerate}\n"
-
-    # Adding parsed items
     for item in items:
-        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n'
+        out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{enumerate}\n"
-
     return out
 
 
 def table_parse(matchObj):
-    # Catching matchObj infos
-    if 'option' in matchObj.groupdict():
-    # If an option is specified
+    if matchObj.groupdict()['option'] != None: # if there is an option
         option = matchObj.group('option')
     else:
         option = ''
     table = matchObj.group('table')
 
-    # Finding the number of rows
-    n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0]))
+    n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0])) # number of rows
 
-    # Creating out string
     out = '\\begin{center}\n\\begin{tabular}'
 
-    # Treating option
-    if option != '':
-        if len(option) == 1:
+    if option != '': # we treat the option
+        if len(option) == 1: # if it is only a 'c' for example we center each cell of the table
             out += '{' + ('|' + option) * n + '|}'
-        else:
+        else: # else, we have the data of every row text alignement (if the user knows the syntax)
             options = option.split()
             out += '{'
             for op in options:
                 out += '|' + option
             out += '|}'
     else:
-        out += '{' + ('|' + 'l') * n + '|}'
+        out += '{' + ('|' + 'l') * n + '|}' # if we have no option we chose a left text alignement by default
 
     out += '\n'
 
-    # Filling the table
-    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]:
-    # For each line of the table
-        out += "\\hline\n"
-        for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]:
-        # For each element of the line
-            # Removing spaces from begining or end of element
-            element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
-
-            # Adding the parsed element
-            out += block_parse(element) + '&'
+    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]: # for each line of the table
+        out += "\\hline\n" # we draw a line
+        for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]: # for each element in this line
+            element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element) # we keep only the element itself (no spaces on its sides)
+            out += block_parse(element) + '&' # we parse it as a block (we can't parse it as a line if it is an itemize for example)
         out = out[0:-1] + '\\\\\n'
     out = out[0:-3] + '\n\\end{tabular}\n\\end{center}\n'
 
     return out
 
 def title_parse(matchObj):
+    titles = {
+    'article' : [r"\part", r"\section", r"\subsection", r"\subsubsection", r"\paragraph", r"\subparagraph", r'\subsubparagraph'],
+    'report' :  [r"\part", r"\chapter", r"\section", r"\subsection", r"\subsubsection", r"\paragraph", r"\subparagraph", r'\subsubparagraph']
+    }
     level = len(matchObj.group('level')) - 1
-    star = matchObj.groupdict()['star'] is not None
-    title = matchObj.group('title')
-    paragraph = matchObj.group('paragraph')
+    star = matchObj.groupdict()['star'] is not None # if this is a 'stared' section (see readme.md)
+    title = matchObj.group('title') # title
+    paragraph = matchObj.group('paragraph') # contents of the section
     out = ''
-    out += [r"\chapter",
-            r"\section",
-            r"\subsection",
-            r"\subsubsection",
-            r"\paragraph",
-            r"\subparagraph",
-            r'\subsubparagraph'][level]
+    out += titles[ARGV['documentclass']][level]
     if star:
         out += '*'
-    out += '{' + inline_parse(title) + '}' + (r"\mbox{}\\" if level >= 5 else '') + '\n'
+    out += '{' + inline_parse(title) + '}' + '\n'
     out += block_parse(paragraph)
     return out
 
-def block_parse(block):
-    if re.sub(r'\n', '', block) == '':
+def block_parse(block): # main parsing function
+    if re.sub(r'\n', '', block) == '': # if the block isn't very interresting we return it directly
         return block
 
     out = ''
@@ -345,7 +306,7 @@ def block_parse(block):
 
     keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
 
-    detection_regex = {
+    detection_regex = { # these regexps are to detect the blocks and to split them correctly
         'code':        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
         'comment':     r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
         'latex':       r"(\\\[(?:.|\n)*?\\\])",
@@ -357,7 +318,7 @@ def block_parse(block):
         'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
     }
 
-    parse_regex = {
+    parse_regex = { # those regexps and those which follow are to parse the blocks correctly
         'code':        r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':       r"(?P<everything>.*)",
@@ -388,13 +349,12 @@ def block_parse(block):
                 for sub_block in sub_blocks:
                     out += block_parse(sub_block)
                 return out
-            break
+            break # once we have met a block we break, otherwise it kills the recursivity
 
-    # Now we know that 'block' is an elementary brick, let's parse it
+    # Now we know that 'block' is an elementary block
     for key in keys:
         if re.search(detection_regex[key], block):
-        # If the block is this type of block
-            return re.sub(parse_regex[key], parse_repl[key], block)
+            return re.sub(parse_regex[key], parse_repl[key], block) # we parse it
 
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
@@ -408,7 +368,9 @@ def inline_parse(line):
     out = ''
 
     keys = {
+    # things which take only one argument
         1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript', 'subscript', 'bold', 'underline', 'italic', 'strike'],
+    # things which take two arguments
         2: ['color', 'link1', 'link2']
     }
 
@@ -543,7 +505,6 @@ def inline_parse(line):
 
 # Main
 
-
 def main():
     global ARGV, doc
 
@@ -606,7 +567,7 @@ def main():
                 "{amssymb}",
                 "{listings}",
                 "{enumerate}",
-                "{xltxtra}"
+                "{xltxtra}",
                 "{epigraph}",
                 "{soul}",
                 "{csquotes}",
