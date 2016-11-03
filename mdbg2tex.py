@@ -326,7 +326,7 @@ def block_parse(block): # main parsing function
         'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
-        'table':       r"(?:!!tab (?P<options>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'table':       r"(?:!!tab (?P<option>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
     }
@@ -377,8 +377,8 @@ def inline_parse(line):
 
     detection_regex = {
         1 : {
-                'code':        r"(`(?:[^`\n]*?)`)",
-                'latex':       r"(\$(?:(?!\$).*)\$)",
+                'code':        r"(`[^`\n]*?`)",
+                'latex':       r"(\$[^$]*\$)",
                 'quote1':      r"(\"(?! )[^\"]*\")",
                 'quote2':      r"('(?! )[^'\n ]*')",
                 'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
@@ -399,7 +399,7 @@ def inline_parse(line):
     parse_regex = {
         1:  {
                 'code':        r"`(?P<inside>[^`\n]*)`",
-                'latex':       r"\$(?P<inside>(?!\$).*)\$",
+                'latex':       r"\$(?P<inside>[^\$]*)\$",
                 'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
                 'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
                 'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
