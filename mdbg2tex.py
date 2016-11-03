@@ -60,6 +60,7 @@ global ARGV
 ARGV = {
     'output': '',
     'input': '',
+    'documentclass': 'report',
     'tableofcontents': True,
     'help': False,
     'lua': False,
@@ -399,8 +400,8 @@ def inline_parse(line):
         1:  {
                 'code':        r"`(?P<inside>[^`\n]*)`",
                 'latex':       r"\$(?P<inside>(?!\$).*)\$",
-                'quote1':      r"\"(?! )(?P<inside>[^\"]*?)\"",
-                'quote2':      r"'(?! )(?P<inside>[^'\n ]*?)'",
+                'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
+                'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
                 'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
                 'superscript': r"\^\{(?P<inside>[^\n\{\}]*)\}",
                 'subscript':   r"_\{(?P<inside>[^\n\{\}]*)\}",
