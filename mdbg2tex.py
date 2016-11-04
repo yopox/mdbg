@@ -7,12 +7,9 @@ import re
 import sys
 
 # Will be turned on if there are some trees in the document
-global tikz_needed
-tikz_needed = False
+tikz_needed = True
 
 # Documentation
-global doc
-
 doc = """
 mdConvert help
 Full version
@@ -106,7 +103,7 @@ def arg_treatment():
         if sys.argv[i] in options_with_args and i + 1 < len(sys.argv):
             ARGV[options_with_args[sys.argv[i]]] = sys.argv[i + 1]
         elif sys.argv[i] in bool_options:
-            ARGV[options_bools[sys.argv[i]]] = True
+            ARGV[bool_options[sys.argv[i]]] = True
 
     if ARGV['output'] == '':
         ARGV['output'] = re.sub(
@@ -140,7 +137,6 @@ def block_code_parse(matchObj): # to parse blocks of code
     return out
 
 def tree_parse(matchObj):
-    global tikz_needed
     tikz_needed = True
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)       # to parsed multiple trees
@@ -263,7 +259,7 @@ def table_parse(matchObj):
             element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element) # we keep only the element itself (no spaces on its sides)
             out += block_parse(element) + '&' # we parse it as a block (we can't parse it as a line if it is an itemize for example)
         out = out[0:-1] + '\\\\\n'
-    out = out[0:-3] + '\n\\end{tabular}\n\\end{center}\n'
+    out = out[0:-3] + '\\\\\n\\hline\n\\end{tabular}\n\\end{center}\n'
 
     return out
 
@@ -379,8 +375,8 @@ def inline_parse(line):
         1 : {
                 'code':        r"(`[^`\n]*?`)",
                 'latex':       r"(\$[^$]*\$)",
-                'quote1':      r"(\"(?! )[^\"]*\")",
-                'quote2':      r"('(?! )[^'\n ]*')",
+                'quote1':      r"(?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
+                'quote2':      r"(?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
                 'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
                 'superscript': r"(\^\{[^\n\{\}]*\})",
                 'subscript':   r"(_\{[^\n\{\}]*\})",
@@ -420,7 +416,7 @@ def inline_parse(line):
     parse_borders = {
         1:  {
                 'code':        (r'\verb`',            '`'),
-                'latex':       ('',                    ''),
+                'latex':       ('$',                  '$'),
                 'quote1':      (r'\say{',             '}'),
                 'quote2':      (r'\say{',             '}'),
                 'footnote':    (r'\footnote{',        '}'),
@@ -483,6 +479,9 @@ def inline_parse(line):
         r"#",                                               # replacing # by \#
         r"%",                                               # replacing % by \%
         r"€",                                               # replacing € by \euro{}
+        r"—",                                               # replacing — by \\textemdash\
+        r"""\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)""", # links
+        r"\<(?P<link>https?://[^ ]*)\>",                    # links
         r"[ ]*/(?=\n|$)",                                   # newline
         r"(?<!\\)LaTeX"                                     # LaTeX
     ]
@@ -495,6 +494,9 @@ def inline_parse(line):
         r"\#",
         r"\%",
         r"\euro{}",
+        r"\\textemdash\ ",
+        r"\\href{\g<link>}{\g<text>}",
+        r"\\href{\g<link>}{\g<link>}",
         r"\\newline",
         r"\\LaTeX{}"
     ]
