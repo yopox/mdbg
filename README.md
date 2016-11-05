@@ -195,7 +195,7 @@ Command : `![c-TREE]!` or `![c-nTREE]!`
 
 ### Graphs
 
-You can draw graphs with a very simple syntaxe (the same as nTREE syntaxe).
+You can draw graphs with a very simple syntax (the same as nTREE syntax).
 
 This is made possible thanks to _TikZ_ fantastic `graphs` and `graphdrawing` packages, with some of their libraries.
 
@@ -203,9 +203,9 @@ Command : `![GRAPH .............!]`
 
 With a possible `!!option` before `![GRAPH...` line.
 
-This os `option` will be translated to `\graph[<option>]...` in _LaTeX_.
+This `option` will be translated to `\graph[<option>]...` in _LaTeX_.
 
-See pgfmanual for more information about the syntaxe.
+See pgfmanual for more information about the syntax.
 
 You can also base your graph on the example given in the section **Examples**
 
@@ -354,7 +354,10 @@ Options :
 
     -r : shortcut for --robot option
     --robot : put this option if you want to use RobotMono font for your code
-
-    -l : shortcut for --lua
-    --lua : put this option if you are intending to compile your .tex document with LuaLaTeX or not. It is automatically set to True if there are trees in your document.
 ```
+
+# pgfmanual
+
+[Here](http://ftp.oleane.net/pub/CTAN/graphics/pgf/base/doc/pgfmanual.pdf) is a link of a recent and accurate version of pgf-tikz manual.
+
+It is used for trees and graphs in Markdown BG.
