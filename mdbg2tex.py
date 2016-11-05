@@ -255,7 +255,7 @@ def table_parse(matchObj):
 
     for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]: # for each line of the table
         out += "\\hline\n" # we draw a line
-        for element in [ x for x in re.findall(r"(?<=\| )([^\|]*)(?= \|)", line) if x != '' and x != '\n' ]: # for each element in this line
+        for element in [ x for x in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line) if x != '' and x != '\n' ]: # for each element in this line
             element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element) # we keep only the element itself (no spaces on its sides)
             out += block_parse(element) + '&' # we parse it as a block (we can't parse it as a line if it is an itemize for example)
         out = out[0:-1] + '\\\\\n'
