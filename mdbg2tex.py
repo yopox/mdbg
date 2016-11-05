@@ -175,6 +175,15 @@ def ntree_parse(matchObj):
     out += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "") # the syntax we use is the syntax used by the sub package 'graph' of TikZ
     return out
 
+def graph_parse(matchObj):
+    # We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information
+    option = matchObj.group('option')
+    option = option if option != None else ''
+    graph = matchObj.group('graph')
+    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em, draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth, rounded corners, semithick]\n\\graph [level distance=1cm, sibling sep=.5em, sibling distance=1cm,"
+    out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
+    return out
+
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
     quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n']
@@ -191,15 +200,6 @@ def quote_parse(matchObj):
         for quote in quotes:
             out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
         return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n" # we remove the extra '\\'
-
-def graph_parse(matchObj):
-    # We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information
-    option = matchObj.group('option')
-    option = option if option != None else ''
-    graph = matchObj.group('graph')
-    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em, draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth, rounded corners, semithick]\n\\graph [level distance=1cm, sibling sep=.5em, sibling distance=1cm,"
-    out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
-    return out
 
 def itemize_parse(matchObj):
     itemize = matchObj.group(0)
@@ -233,7 +233,7 @@ def table_parse(matchObj):
 
     out = '\\begin{center}\n\\begin{tabular}'
 
-    if option != '': # we treat the option
+    if option != None: # we treat the option
         if len(option) == 1: # if it is only a 'c' for example we center each cell of the table
             out += '{' + ('|' + option) * n + '|}'
         else: # else, we have the data of every row text alignement (if the user knows the syntax)
