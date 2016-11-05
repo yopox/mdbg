@@ -193,6 +193,22 @@ Command : `![c-TREE]!` or `![c-nTREE]!`
 ![c-nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
 
+### Graphs
+
+You can draw graphs with a very simple syntaxe (the same as nTREE syntaxe).
+
+This is made possible thanks to _TikZ_ fantastic `graphs` and `graphdrawing` packages, with some of their libraries.
+
+Command : `![GRAPH .............!]`
+
+With a possible `!!option` before `![GRAPH...` line.
+
+This os `option` will be translated to `\graph[<option>]...` in _LaTeX_.
+
+See pgfmanual for more information about the syntaxe.
+
+You can also base your graph on the example given in the section **Examples**
+
 ### New text features
 
 #### Superscript
@@ -275,6 +291,30 @@ let heap_sort a = let n = ref (vect_length a - 1) in
 Will produce this :
 
 ![Some code in ocaml](http://www.mirari.fr/ogMn)
+
+## Graphs
+
+```mdbg
+!!layered layout
+![GRAPH "5th Edition" -> { "6th Edition", "PWB 1.0" };
+"6th Edition" -> { "LSX", "1 BSD", "Mini Unix", "Wollongong", "Interdata" };
+"Interdata" -> { "Unix/TS 3.0", "PWB 2.0", "7th Edition" };
+"7th Edition" -> { "8th Edition", "32V", "V7M", "Ultrix-11", "Xenix", "UniPlus+" };
+"V7M" -> "Ultrix-11";
+"8th Edition" -> "9th Edition";
+"1 BSD" -> "2 BSD" -> "2.8 BSD" -> { "Ultrix-11", "2.9 BSD" };
+"32V" -> "3 BSD" -> "4 BSD" -> "4.1 BSD" -> { "4.2 BSD", "2.8 BSD", "8th Edition" };
+"4.2 BSD" -> { "4.3 BSD", "Ultrix-32" };
+"PWB 1.0" -> { "PWB 1.2" -> "PWB 2.0", "USG 1.0" -> { "CB Unix 1", "USG 2.0" }};
+"CB Unix 1" -> "CB Unix 2" -> "CB Unix 3" -> { "Unix/TS++", "PDP-11 Sys V" };
+{ "USG 2.0" -> "USG 3.0", "PWB 2.0", "Unix/TS 1.0" } -> "Unix/TS 3.0";
+{ "Unix/TS++", "CB Unix 3", "Unix/TS 3.0" } -> "TS 4.0" -> "System V.0" -> "System V.2" -> "System V.3";
+]!
+```
+
+Will produce this :
+
+![Graph example](http://www.mirari.fr/EbE6)
 
 # Comprehensive list of colors
 
