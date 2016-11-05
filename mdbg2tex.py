@@ -6,9 +6,6 @@
 import re
 import sys
 
-# Will be turned on if there are some trees in the document
-tikz_needed = True
-
 # Documentation
 doc = """
 mdConvert help
@@ -44,10 +41,7 @@ Options :
 
     -r : shortcut for --robot option
     --robot : put this option if you want to use RobotMono font for your code
-
-    -l : shortcut for --lua
-    --lua : put this option if you are intending to compile your .tex document with LuaLaTeX or not. It is automatically set to True if there are trees in your document.
-
+    
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -60,7 +54,6 @@ ARGV = {
     'documentclass': 'report',
     'tableofcontents': True,
     'help': False,
-    'lua': False,
     'robot': False
 }
 
@@ -92,8 +85,6 @@ def arg_treatment():
         '--help': 'help',
         '-T': 'tableofcontents',
         '--tableofcontents': 'tableofcontents',
-        '--lua': 'lua',
-        '-l': 'lua',
         '--robot': 'robot',
         '-r': 'robot'
     }
@@ -137,7 +128,6 @@ def block_code_parse(matchObj): # to parse blocks of code
     return out
 
 def tree_parse(matchObj):
-    tikz_needed = True
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj)       # to parsed multiple trees
     else:
@@ -185,13 +175,12 @@ def ntree_parse(matchObj):
     out += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "") # the syntax we use is the syntax used by the sub package 'graph' of TikZ
     return out
 
-
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
     quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n']
-    if matchObj.groupdict()['reference'] != None:
+    reference = matchObj.group('reference')
+    if reference != None:
         # For quotations with a reference
-        reference = matchObj.group('reference')
         out = ''
         for quote in quotes:
             out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
@@ -203,6 +192,14 @@ def quote_parse(matchObj):
             out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
         return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n" # we remove the extra '\\'
 
+def graph_parse(matchObj):
+    # We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information
+    option = matchObj.group('option')
+    option = option if option != None else ''
+    graph = matchObj.group('graph')
+    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em, draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth, rounded corners, semithick]\n\\graph [level distance=1cm, sibling sep=.5em, sibling distance=1cm,"
+    out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
+    return out
 
 def itemize_parse(matchObj):
     itemize = matchObj.group(0)
@@ -229,10 +226,7 @@ def enumerate_parse(matchObj):
 
 
 def table_parse(matchObj):
-    if matchObj.groupdict()['option'] != None: # if there is an option
-        option = matchObj.group('option')
-    else:
-        option = ''
+    option = matchObj.group('option')
     table = matchObj.group('table')
 
     n = len(re.findall(r"(?<=\|)([^\|]*)(?=\|)", re.findall("^.*", table)[0])) # number of rows
@@ -269,7 +263,7 @@ def title_parse(matchObj):
     'report' :  [r"\part", r"\chapter", r"\section", r"\subsection", r"\subsubsection", r"\paragraph", r"\subparagraph", r'\subsubparagraph']
     }
     level = len(matchObj.group('level')) - 1
-    star = matchObj.groupdict()['star'] is not None # if this is a 'stared' section (see readme.md)
+    star = matchObj.group('star') is not None # if this is a 'stared' section (see readme.md)
     title = matchObj.group('title') # title
     paragraph = matchObj.group('paragraph') # contents of the section
     out = ''
@@ -301,7 +295,7 @@ def block_parse(block): # main parsing function
     # A block is some kind of node in a tree
     # A leaf is a piece of inline text or an block "elementary brick"
 
-    keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree']
+    keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation', 'tree', 'graph']
 
     detection_regex = { # these regexps are to detect the blocks and to split them correctly
         'code':        r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
@@ -312,7 +306,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
         'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
-        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)"
+        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",
+        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!).)*\]!)"
     }
 
     parse_regex = { # those regexps and those which follow are to parse the blocks correctly
@@ -324,7 +319,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
-        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!"
+        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
+        'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!).)*)\]!"
     }
 
     parse_repl = {
@@ -336,7 +332,8 @@ def block_parse(block): # main parsing function
         'enumerate':   enumerate_parse,
         'table':       table_parse,
         'quotation':   quote_parse,
-        'tree' :       tree_parse
+        'tree' :       tree_parse,
+        'graph':       graph_parse
     }
 
     for key in keys:
@@ -542,16 +539,7 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
-
-    # If a tree is detected, tikz and his libraries are loaded and lua option is put on True
-    ARGV['lua'] = ARGV['lua'] or tikz_needed
-
-    # Text encoding packages
-    if ARGV['lua']:
-        output.write("\\usepackage{fontspec}\n")
-    else:
-        output.write("\\usepackage[utf8]{inputenc}\n\\usepackage[T1]{fontenc}\n")
-
+    
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -563,7 +551,8 @@ def main():
             temp = temp[1:-1]
             additionnal_packages = temp.split(', ')
 
-    packages = ["[frenchb]{babel}",
+    packages = ["{fontspec}",
+                "[frenchb]{babel}",
                 "[usenames,dvipsnames,svgnames,table]{xcolor}",
                 "[a4paper]{geometry}",
                 "{amsmath}",
@@ -577,9 +566,6 @@ def main():
                 "{dirtytalk}",
                 "{hyperref}",
                 "[official]{eurosym}"] + additionnal_packages
-
-    if tikz_needed:
-        packages.append('{tikz}')
 
     for package in packages:
         output.write(r"\usepackage" + package + '\n')
