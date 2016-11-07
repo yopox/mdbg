@@ -304,7 +304,7 @@ def block_parse(block): # main parsing function
         'title':       r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
-        'table':       r"((?:!!.*\n)?(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
         'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",
         'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!).)*\]!)"
@@ -317,7 +317,7 @@ def block_parse(block): # main parsing function
         'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
-        'table':       r"(?:!!tab (?P<option>.*)\n)?(?P<table>(?:(?:^|(?<=\n))\|(?:[^\|]*\|)+(?:(?:\n(?=\|))|$)?)+)",
+        'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
         'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!).)*)\]!"
