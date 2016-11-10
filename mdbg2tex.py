@@ -437,7 +437,7 @@ def inline_parse(line):
     }
 
 	n = len(line)
-    matches = {1: {}, 2: {}}
+	matches = {1: {}, 2: {}}
 	for i in (1, 2):
 		for key in keys[i]:
 			match = re.search(detection_regex[i][key], block)
@@ -445,9 +445,9 @@ def inline_parse(line):
 				matches[i][key] = n + 1
 			else:
 				matches[i][key] = match.start()
-				
+
 	key = min([(i, keys[i]) for i in (1, 2)], lambda x: matches[x[0]][x[1]])
-	
+
 	if matches[key[0]][key[1]] != n + 1:
 		sub_lines = re.split(detection_regex[key[0]][key[1]], line)
 		if sub_lines != ['', line, '']:
