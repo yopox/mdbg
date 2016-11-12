@@ -377,8 +377,8 @@ def inline_parse(line):
         1 : {
                 'code':        r"(`[^`\n]*?`)",
                 'latex':       r"(\$[^$]*\$)",
-                'quote1':      r"(?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
-                'quote2':      r"(?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
+                'quote1':      r"((?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$))",
+                'quote2':      r"((?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$))",
                 'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
                 'superscript': r"(\^\{[^\n\{\}]*\})",
                 'subscript':   r"(_\{[^\n\{\}]*\})",
@@ -447,9 +447,12 @@ def inline_parse(line):
                 matches[i][key] = match.start()
 
     key = min([(i, keys[i][j]) for i in (1, 2) for j in range(len(keys[i]))], key = lambda x: matches[x[0]][x[1]])
+    print("Chosen key is ", key)
 
     if matches[key[0]][key[1]] != n + 1:
+        print("Element at position", matches[key[0]][key[1]])
         sub_lines = re.split(detection_regex[key[0]][key[1]], line)
+        print(sub_lines)
         if sub_lines != ['', line, '']:
             for sub_line in sub_lines:
                 out += inline_parse(sub_line)
