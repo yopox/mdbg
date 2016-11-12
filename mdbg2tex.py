@@ -41,7 +41,7 @@ Options :
 
     -r : shortcut for --robot option
     --robot : put this option if you want to use RobotMono font for your code
-
+    
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -205,11 +205,11 @@ def itemize_parse(matchObj):
     itemize = matchObj.group(0)
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize) # we split items and remove '-' symbol from each item
-    items = [x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\n\\begin{itemize}\n\n"
+    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\\begin{itemize}\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
-    out += "\n\\end{itemize}\n"
+    out += "\\end{itemize}\n"
     return out
 
 
@@ -217,11 +217,11 @@ def enumerate_parse(matchObj):
     enum = matchObj.group(0)
     enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))[0-9]+\.  ((?:.|\n(?!-))*)", enum) # we split items and remove things like '2.' from each item
-    items = [x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\n\\begin{enumerate}\n\n"
+    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\\begin{enumerate}\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
-    out += "\n\\end{enumerate}\n"
+    out += "\\end{enumerate}\n"
     return out
 
 
@@ -337,6 +337,9 @@ def block_parse(block): # main parsing function
     }
 
     n = len(block)
+    
+    # matches is going to contain couples (i, j) where i is a key in keys and j is the position of the first key-element in the block
+    # if there is no key-element in the block the position is set to n + 1 where n is the length of the block
     matches = {}
     for key in keys:
         match = re.search(detection_regex[key], block)
@@ -345,9 +348,11 @@ def block_parse(block): # main parsing function
         else:
             matches[key] = match.start()
 
+    # we take the key the element of which is the first in the block
     key = min(keys, key = lambda x: matches[x])
     
-    if matches[key] != n + 1:
+    # block is going to be splitted into the first key-element and the rest of the string
+    if matches[key] != n + 1: # if this element is indeed existing
         sub_blocks = re.split(detection_regex[key],block)
         if sub_blocks != ['', block, '']:
             for sub_block in sub_blocks:
@@ -447,12 +452,9 @@ def inline_parse(line):
                 matches[i][key] = match.start()
 
     key = min([(i, keys[i][j]) for i in (1, 2) for j in range(len(keys[i]))], key = lambda x: matches[x[0]][x[1]])
-    print("Chosen key is ", key)
 
     if matches[key[0]][key[1]] != n + 1:
-        print("Element at position", matches[key[0]][key[1]])
         sub_lines = re.split(detection_regex[key[0]][key[1]], line)
-        print(sub_lines)
         if sub_lines != ['', line, '']:
             for sub_line in sub_lines:
                 out += inline_parse(sub_line)
@@ -545,7 +547,7 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
-
+    
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -617,7 +619,6 @@ def main():
 
     # Formating line breaks
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
-    main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
     main_string = re.sub(
         r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
@@ -632,6 +633,7 @@ def main():
     output.close()
 
     print("LaTeX output file written in :", outFile)
+
 
 # Execution
 if __name__ == '__main__':
