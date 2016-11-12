@@ -41,7 +41,7 @@ Options :
 
     -r : shortcut for --robot option
     --robot : put this option if you want to use RobotMono font for your code
-    
+
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -205,11 +205,11 @@ def itemize_parse(matchObj):
     itemize = matchObj.group(0)
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize) # we split items and remove '-' symbol from each item
-    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\\begin{itemize}\n"
+    items = [x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\n\\begin{itemize}\n\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
-    out += "\\end{itemize}\n"
+    out += "\n\\end{itemize}\n"
     return out
 
 
@@ -217,11 +217,11 @@ def enumerate_parse(matchObj):
     enum = matchObj.group(0)
     enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))[0-9]+\.  ((?:.|\n(?!-))*)", enum) # we split items and remove things like '2.' from each item
-    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\\begin{enumerate}\n"
+    items = [x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\n\\begin{enumerate}\n\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
-    out += "\\end{enumerate}\n"
+    out += "\n\\end{enumerate}\n"
     return out
 
 
@@ -539,7 +539,7 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
-    
+
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -611,6 +611,7 @@ def main():
 
     # Formating line breaks
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
+    main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
     main_string = re.sub(
         r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
@@ -625,7 +626,6 @@ def main():
     output.close()
 
     print("LaTeX output file written in :", outFile)
-
 
 # Execution
 if __name__ == '__main__':
