@@ -206,7 +206,7 @@ def itemize_parse(matchObj):
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize) # we split items and remove '-' symbol from each item
     items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\\begin{itemize}\n"
+    out = "\n\\begin{itemize}\n\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{itemize}\n"
@@ -218,7 +218,7 @@ def enumerate_parse(matchObj):
     enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum) # we remove left indentation
     items = re.split(r"(?:^|(?<=\n))[0-9]+\.  ((?:.|\n(?!-))*)", enum) # we split items and remove things like '2.' from each item
     items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\\begin{enumerate}\n"
+    out = "\n\\begin{enumerate}\n\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{enumerate}\n"
@@ -620,6 +620,7 @@ def main():
     # Formating line breaks
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
+    main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
     main_string = re.sub(
         r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
 
