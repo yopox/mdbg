@@ -247,9 +247,9 @@ def table_parse(matchObj):
 
     out += '\n'
 
-    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]: # for each line of the table
+    for line in [line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n']: # for each line of the table
         out += "\\hline\n" # we draw a line
-        for element in [ x for x in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line) if x != '' and x != '\n' ]: # for each element in this line
+        for element in [x for x in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line) if x != '' and x != '\n']: # for each element in this line
             element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element) # we keep only the element itself (no spaces on its sides)
             out += block_parse(element) + '&' # we parse it as a block (we can't parse it as a line if it is an itemize for example)
         out = out[0:-1] + '\\\\\n'
@@ -306,8 +306,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
-        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",
-        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!).)*\]!)"
+        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
+        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
 
     parse_regex = { # those regexps and those which follow are to parse the blocks correctly
@@ -319,8 +319,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
-        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
-        'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!).)*)\]!"
+        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
+        'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
 
     parse_repl = {
@@ -335,26 +335,26 @@ def block_parse(block): # main parsing function
         'tree' :       tree_parse,
         'graph':       graph_parse
     }
-	
-	n = len(block)
+
+    n = len(block)
     matches = {}
-	for key in keys:
-		match = re.search(detection_regex[key], block)
-		if match == None:
-			matches[key] = n + 1
-		else:
-			matches[key] = match.start()
-			
-	key = min(keys, lambda x: matches[x])
-	
-	if matches[key] != n + 1:
-		sub_blocks = re.split(detection_regex[key],block)
-		if sub_blocks != ['', block, '']:
-			for sub_block in sub_blocks:
-				out += block_parse(sub_block)
-			return out
-		return re.sub(parse_regex[key], parse_repl[key], block)
-	
+    for key in keys:
+        match = re.search(detection_regex[key], block)
+        if match == None:
+            matches[key] = n + 1
+        else:
+            matches[key] = match.start()
+
+    key = min(keys, key = lambda x: matches[x])
+    
+    if matches[key] != n + 1:
+        sub_blocks = re.split(detection_regex[key],block)
+        if sub_blocks != ['', block, '']:
+            for sub_block in sub_blocks:
+                out += block_parse(sub_block)
+            return out
+        return re.sub(parse_regex[key], parse_repl[key], block)
+    
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
 
@@ -377,7 +377,7 @@ def inline_parse(line):
         1 : {
                 'code':        r"(`[^`\n]*?`)",
                 'latex':       r"(\$[^$]*\$)",
-                'quote1':      r'(?:^|(?<=\W))"(?! )(?:(?:(?!(?<=\W)"|"(?=\W)).)*?)"(?=\W|$)',
+                'quote1':      r"(?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
                 'quote2':      r"(?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
                 'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
                 'superscript': r"(\^\{[^\n\{\}]*\})",
@@ -398,7 +398,7 @@ def inline_parse(line):
         1:  {
                 'code':        r"`(?P<inside>[^`\n]*)`",
                 'latex':       r"\$(?P<inside>[^\$]*)\$",
-                'quote1':      r'(?:^|(?<=\W))"(?! )(?P<inside>(?:(?!(?<=\W)"|"(?=\W)).)*?)"(?=\W|$)',
+                'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
                 'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
                 'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
                 'superscript': r"\^\{(?P<inside>[^\n\{\}]*)\}",
@@ -418,7 +418,7 @@ def inline_parse(line):
     parse_borders = {
         1:  {
                 'code':        (r'\verb`',            '`'),
-                'latex':       (r'$',                 '$'),
+                'latex':       ('$',                  '$'),
                 'quote1':      (r'\say{',             '}'),
                 'quote2':      (r'\say{',             '}'),
                 'footnote':    (r'\footnote{',        '}'),
@@ -436,39 +436,39 @@ def inline_parse(line):
             }
     }
 
-	n = len(line)
-	matches = {1: {}, 2: {}}
-	for i in (1, 2):
-		for key in keys[i]:
-			match = re.search(detection_regex[i][key], block)
-			if match == None:
-				matches[i][key] = n + 1
-			else:
-				matches[i][key] = match.start()
+    n = len(line)
+    matches = {1: {}, 2: {}}
+    for i in (1, 2):
+        for key in keys[i]:
+            match = re.search(detection_regex[i][key], line)
+            if match == None:
+                matches[i][key] = n + 1
+            else:
+                matches[i][key] = match.start()
 
-	key = min([(i, keys[i]) for i in (1, 2)], lambda x: matches[x[0]][x[1]])
+    key = min([(i, keys[i][j]) for i in (1, 2) for j in range(len(keys[i]))], key = lambda x: matches[x[0]][x[1]])
 
-	if matches[key[0]][key[1]] != n + 1:
-		sub_lines = re.split(detection_regex[key[0]][key[1]], line)
-		if sub_lines != ['', line, '']:
-			for sub_line in sub_lines:
-				out += inline_parse(sub_line)
-			return out
-		if key[0] == 1:
-			inside = re.sub(parse_regex[key[0]][key[1]], r"\g<inside>", line)
-			if key[1] in ('code', 'latex'):
-				return parse_borders[key[0]][key[1]][0] + inside + parse_borders[key[0]][key[1]][1]
-			else:
-				return parse_borders[key[0]][key[1]][0] + inline_parse(inside) + parse_borders[key[0]][key[1]][1]
-		else:
-			left =  re.sub(parse_regex[key[0]][key[1]], r"\g<left>", line)
-			right = re.sub(parse_regex[key[0]][key[1]], r"\g<right>", line)
-			if key[1] in ('link1', 'link2'):
-				return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + right + parse_borders[key[0]][key[1]][2]
-			else:
-				return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + inline_parse(right) + parse_borders[key[0]][key[1]][2]
-	
-	
+    if matches[key[0]][key[1]] != n + 1:
+        sub_lines = re.split(detection_regex[key[0]][key[1]], line)
+        if sub_lines != ['', line, '']:
+            for sub_line in sub_lines:
+                out += inline_parse(sub_line)
+            return out
+        if key[0] == 1:
+            inside = re.sub(parse_regex[key[0]][key[1]], r"\g<inside>", line)
+            if key[1] in ('code', 'latex'):
+                return parse_borders[key[0]][key[1]][0] + inside + parse_borders[key[0]][key[1]][1]
+            else:
+                return parse_borders[key[0]][key[1]][0] + inline_parse(inside) + parse_borders[key[0]][key[1]][1]
+        else:
+            left =  re.sub(parse_regex[key[0]][key[1]], r"\g<left>", line)
+            right = re.sub(parse_regex[key[0]][key[1]], r"\g<right>", line)
+            if key[1] in ('link1', 'link2'):
+                return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + right + parse_borders[key[0]][key[1]][2]
+            else:
+                return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + inline_parse(right) + parse_borders[key[0]][key[1]][2]
+    
+    
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
     supl_regex = [
         r"^[-\*_]{3,}",                                     # horizontal line
@@ -568,14 +568,15 @@ def main():
                 "{csquotes}",
                 "{dirtytalk}",
                 "{hyperref}",
-                "[official]{eurosym}"] + additionnal_packages
+                "[official]{eurosym}",
+                "{tikz}"] + additionnal_packages
 
     for package in packages:
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
             output.write(
-                "\\usetikzlibrary{graphs,graphdrawing,arrows.meta}\n\\usegdlibrary{trees}\n")
+                "\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
             output.write(
