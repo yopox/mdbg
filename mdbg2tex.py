@@ -247,9 +247,9 @@ def table_parse(matchObj):
 
     out += '\n'
 
-    for line in [ line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n' ]: # for each line of the table
+    for line in [line for line in re.findall(r"(?:^|(?<=\n)).*", table) if line != '' and line != '\n']: # for each line of the table
         out += "\\hline\n" # we draw a line
-        for element in [ x for x in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line) if x != '' and x != '\n' ]: # for each element in this line
+        for element in [x for x in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line) if x != '' and x != '\n']: # for each element in this line
             element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element) # we keep only the element itself (no spaces on its sides)
             out += block_parse(element) + '&' # we parse it as a block (we can't parse it as a line if it is an itemize for example)
         out = out[0:-1] + '\\\\\n'
@@ -306,8 +306,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
-        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!).)*\]!)",
-        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!).)*\]!)"
+        'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
+        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
 
     parse_regex = { # those regexps and those which follow are to parse the blocks correctly
@@ -319,8 +319,8 @@ def block_parse(block): # main parsing function
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
-        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!).)*)\]!",
-        'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!).)*)\]!"
+        'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
+        'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
 
     parse_repl = {
@@ -565,14 +565,15 @@ def main():
                 "{csquotes}",
                 "{dirtytalk}",
                 "{hyperref}",
-                "[official]{eurosym}"] + additionnal_packages
+                "[official]{eurosym}",
+                "{tikz}"] + additionnal_packages
 
     for package in packages:
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
             output.write(
-                "\\usetikzlibrary{graphs,graphdrawing,arrows.meta}\n\\usegdlibrary{trees}\n")
+                "\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
             output.write(
