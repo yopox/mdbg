@@ -456,6 +456,12 @@ def inline_parse(line):
 
     key = min([(i, keys[i][j]) for i in (1, 2) for j in range(len(keys[i]))], key = lambda x: matches[x[0]][x[1]])
 
+    # Same as in block_parse
+    if matches[1]['latex'] != n + 1:
+        key = (1, 'latex')
+    if matches[1]['code'] != n + 1:
+        key = (1, 'code')
+    
     if matches[key[0]][key[1]] != n + 1:
         sub_lines = re.split(detection_regex[key[0]][key[1]], line)
         if sub_lines != ['', line, '']:
