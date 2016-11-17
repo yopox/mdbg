@@ -39,9 +39,9 @@ Options :
     -T : shortcut for --tableofcontents
     --tableofcontents : if a table of contents is needed ('on' by default)
 
-    -r : shortcut for --robot option
-    --robot : put this option if you want to use RobotMono font for your code
-    
+    -r : shortcut for --roboto option
+    --robot : put this option if you want to use RobotoMono font for your code
+
 Go to https://github.com/YoPox/mdConvert/ for more information
 """
 
@@ -54,7 +54,7 @@ ARGV = {
     'documentclass': 'report',
     'tableofcontents': True,
     'help': False,
-    'robot': False
+    'roboto': False
 }
 
 def arg_treatment():
@@ -84,8 +84,8 @@ def arg_treatment():
         '--help': 'help',
         '-T': 'tableofcontents',
         '--tableofcontents': 'tableofcontents',
-        '--robot': 'robot',
-        '-r': 'robot'
+        '--roboto': 'roboto',
+        '-r': 'roboto'
     }
 
     # Options treatment
@@ -147,7 +147,7 @@ def binary_tree_parse(matchObj):
     # Henri IV and ask E. T.
     def get_tree():
         def aux(i, depth):
-            if nodes[i][0] == 'F':
+            if nodes[i][0] == 'L':
                 f = nodes[i][1]
                 return ('"' + (block_parse(f) if f != '()' else '') + '"', i + 1)
             else:
@@ -324,7 +324,7 @@ def block_parse(block): # main parsing function
     }
 
     n = len(block)
-    
+
     # matches is going to contain couples (i, j) where i is a key in keys and j is the position of the first key-element in the block
     # if there is no key-element in the block the position is set to n + 1 where n is the length of the block
     matches = {}
@@ -352,7 +352,7 @@ def block_parse(block): # main parsing function
                 out += block_parse(sub_block)
             return out
         return re.sub(parse_regex[key], parse_repl[key], block)
-    
+
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
 
@@ -451,7 +451,7 @@ def inline_parse(line):
         key = (1, 'latex')
     if matches[1]['code'] != n + 1:
         key = (1, 'code')
-    
+
     if matches[key[0]][key[1]] != n + 1:
         sub_lines = re.split(detection_regex[key[0]][key[1]], line)
         if sub_lines != ['', line, '']:
@@ -471,8 +471,8 @@ def inline_parse(line):
                 return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + right + parse_borders[key[0]][key[1]][2]
             else:
                 return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] + inline_parse(right) + parse_borders[key[0]][key[1]][2]
-    
-    
+
+
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
     supl_regex = [
         r"^[-\*_]{3,}",                                     # horizontal line
@@ -546,7 +546,7 @@ def main():
     # Packages
     # Some packages are loaded by default, the user can ask to load more packages
     # by putting them in the -p or --packages option
-    
+
     additionnal_packages = []
     if 'packages' in ARGV:
         temp = ARGV['packages']
@@ -586,8 +586,8 @@ def main():
                 "\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
 
     # RobotMono font
-    if ARGV['robot']:
-        output.write("\setmonofont{[RobotoMono-Regular.ttf]}\n")
+    if ARGV['roboto']:
+        output.write("\\usepackage{roboto}\n")
 
     # Syntax highliting
     if '`' in contents:
