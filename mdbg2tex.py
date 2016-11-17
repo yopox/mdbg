@@ -8,7 +8,7 @@ import sys
 
 # Documentation
 doc = """
-mdConvert help
+mdbg2tex help
 Full version
 
 Usage :
@@ -56,7 +56,6 @@ ARGV = {
     'help': False,
     'robot': False
 }
-
 
 def arg_treatment():
     global ARGV
@@ -204,26 +203,24 @@ def quote_parse(matchObj):
 def itemize_parse(matchObj):
     itemize = matchObj.group(0)
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize) # we remove left indentation
-    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!-))*)", itemize) # we split items and remove '-' symbol from each item
-    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\n\\begin{itemize}\n\n"
+    items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!- ))*)", itemize) # we split items and remove '-' symbol from each item
+    items = [x for x in items if x!= '' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\\begin{itemize}\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{itemize}\n"
     return out
 
-
 def enumerate_parse(matchObj):
     enum = matchObj.group(0)
     enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum) # we remove left indentation
-    items = re.split(r"(?:^|(?<=\n))[0-9]+\.  ((?:.|\n(?!-))*)", enum) # we split items and remove things like '2.' from each item
-    items = [ x for x in items if x!='' and x != '\n'] # we keep only non empty items (who cares about empty items?)
-    out = "\n\\begin{enumerate}\n\n"
+    items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", enum) # we split items and remove things like '2.' from each item
+    items = [x for x in items if x!= '' and x != '\n'] # we keep only non empty items (who cares about empty items?)
+    out = "\\begin{enumerate}\n"
     for item in items:
         out += "\t\\item " + re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item)) + '\n' # we parse the item recursively and indent the LaTeX code
     out += "\\end{enumerate}\n"
     return out
-
 
 def table_parse(matchObj):
     option = matchObj.group('option')
@@ -305,7 +302,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
-        'quotation':   r"((?:^|(?<=\n))> (?:.|\n(?=> ))*(?:\n\(.+\))?)",
+        'quotation':   r"((^|(?<=\n))(?:> .*\n?)+(?:\n\(.+\))?)",
         'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
         'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
@@ -318,7 +315,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
-        'quotation':   r"(?P<quote>(?:^>|(?<=\n)>) (?:.|\n(?=> ))*)\n?(?:\((?P<reference>.+)\))?",
+        'quotation':   r"((^|(?<=\n))(?P<quote>[>] .*\n?)+(?P<reference>\n\(.+\))?",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
         'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
@@ -350,7 +347,13 @@ def block_parse(block): # main parsing function
 
     # we take the key the element of which is the first in the block
     key = min(keys, key = lambda x: matches[x])
-    
+
+    # if there is code/latex we have to chose it before other blocks (and code before latex)
+    if matches['latex'] != n + 1:
+        key = 'latex'
+    if matches['code'] != n + 1:
+        key = 'code'
+
     # block is going to be splitted into the first key-element and the rest of the string
     if matches[key] != n + 1: # if this element is indeed existing
         sub_blocks = re.split(detection_regex[key],block)
