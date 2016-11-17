@@ -292,7 +292,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
-        'quotation':   r"(?:(^|(?<=\n))(?:> .*\n?)+)",
+        'quotation':   r"((?:^|(?<=\n))(?:> .*\n?)+)",
         'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
         'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
@@ -305,7 +305,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
-        'quotation':   r"(?:^|(?<=\n))(?P<quote>[>] .*\n?)+",
+        'quotation':   r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
         'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
