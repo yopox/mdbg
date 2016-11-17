@@ -186,19 +186,10 @@ def graph_parse(matchObj):
 def quote_parse(matchObj):
     quotes = matchObj.group('quote')
     quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x!= '' and x!= '\n']
-    reference = matchObj.group('reference')
-    if reference != None:
-        # For quotations with a reference
-        out = ''
-        for quote in quotes:
-            out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
-        return r"\epigraph{" + out[0:-2] + "}" + "{" + block_parse(reference) + "}" # we use package epigraph for referenced quotations
-    else:
-        # For quotations without a reference
-        out = "\n\\medskip\n\\begin{displayquote}\n" # we use 'csquote' package for non referenced quotations
-        for quote in quotes:
-            out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
-        return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n" # we remove the extra '\\'
+    out = "\n\\medskip\n\\begin{displayquote}\n" # we use 'csquote' package
+    for quote in quotes:
+        out += block_parse(quote) + r"\\" # we parse recursively the content of the quotation
+    return out[0:-2] + "\n\\end{displayquote}\n\\medskip\n" # we remove the extra '\\'
 
 def itemize_parse(matchObj):
     itemize = matchObj.group(0)
@@ -274,7 +265,6 @@ def title_parse(matchObj):
 def block_parse(block): # main parsing function
     if re.sub(r'\n', '', block) == '': # if the block isn't very interresting we return it directly
         return block
-
     out = ''
 
     # A block can be several blocks itself
@@ -302,7 +292,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
         'enumerate':   r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':       r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
-        'quotation':   r"((^|(?<=\n))(?:> .*\n?)+(?:\n\(.+\))?)",
+        'quotation':   r"(?:(^|(?<=\n))(?:> .*\n?)+)",
         'tree' :       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
         'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
@@ -315,7 +305,7 @@ def block_parse(block): # main parsing function
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
         'table':       r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
-        'quotation':   r"((^|(?<=\n))(?P<quote>[>] .*\n?)+(?P<reference>\n\(.+\))?",
+        'quotation':   r"(?:^|(?<=\n))(?P<quote>[>] .*\n?)+",
         'tree' :       r"!\[(?:(?P<option>[a-z])-)?n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
         'graph' :      r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
@@ -577,7 +567,6 @@ def main():
                 "{listings}",
                 "{enumerate}",
                 "{xltxtra}",
-                "{epigraph}",
                 "{soul}",
                 "{csquotes}",
                 "{dirtytalk}",
