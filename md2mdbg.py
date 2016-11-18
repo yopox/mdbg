@@ -103,19 +103,34 @@ def block_parse(block):
         'table':       table_parse,
     }
 
-    for key in keys: # for each type of block
-        if re.search(detection_regex[key], block): # if the current block is of this type
-            sub_blocks = re.split(detection_regex[key],block) # we try to split it
-            if sub_blocks != ['', block, '']: # if it is not an atom
-                for sub_block in sub_blocks: # we parse each piece and we add them
-                    out += block_parse(sub_block)
-                return out
-            break
+    n = len(block)
+    # matches is going to contain couples (i, j) where i is a key in keys and j is the position of the first key-element in the block
+    # if there is no key-element in the block the position is set to n + 1 where n is the length of the block
+    matches = {}
+    for key in keys:
+        match = re.search(detection_regex[key], block)
+        if match == None:
+            matches[key] = n + 1
+        else:
+            matches[key] = match.start()
 
-    # Now we know that 'block' is an elementary brick, let's parse it
-    for key in keys: # for each type of block
-        if re.search(detection_regex[key], block): # if the current block is of this type
-            return re.sub(r"(?:.|\n)*", parse_repl[key], block) # we parse it, we return it.
+    # we take the key the element of which is the first in the block
+    key = min(keys, key = lambda x: matches[x])
+
+    # if there is code/latex we have to chose it before other blocks (and code before latex)
+    if matches['latex'] != n + 1:
+        key = 'latex'
+    if matches['code'] != n + 1:
+        key = 'code'
+
+    # block is going to be splitted into the first key-element and the rest of the string
+    if matches[key] != n + 1: # if this element is indeed existing
+        sub_blocks = re.split(detection_regex[key],block)
+        if sub_blocks != ['', block, '']:
+            for sub_block in sub_blocks:
+                out += block_parse(sub_block)
+            return out
+        return re.sub(r"((?:.|\n)*)", parse_repl[key], block)
 
     # If we arrive to this point, this means block is not a block; it is just an inline part so we just have to
     return inline_parse(block)
@@ -136,16 +151,16 @@ def inline_parse(line):
     detection_regex = {
         'code':      r"(`[^`\n]*`)",
         'latex':     r"(\$[^\$]*\$)",
-        'bold':      r"(\*\*(?! )(?:(?:(?!\*\*).)*)\*\*)",
+        'bold':      r"(\*\*(?! )(?:(?:(?!\*\*)(?:.|\n))*)\*\*)",
         'italic':    r"(_(?! )[^_]*_)",
-        'strike':    r"(~~(?! )(?:(?:(?!~~).)*)~~)"
+        'strike':    r"(~~(?! )(?:(?:(?!~~)(?:.|\n))*)~~)"
     }
     parse_regex = {
         'code':      r"`(?P<inside>[^`\n]*)`",
         'latex':     r"\$(?P<inside>[^\$]*)\$",
-        'bold':      r"\*\*(?! )(?P<inside>(?:(?:(?!\*\*).)*))\*\*",
+        'bold':      r"\*\*(?! )(?P<inside>(?:(?:(?!\*\*)(?:.|\n))*))\*\*",
         'italic':    r"_(?! )(?P<inside>[^_]*)_",
-        'strike':    r"~~(?! )(?P<inside>(?:(?:(?!~~).)*))~~"
+        'strike':    r"~~(?! )(?P<inside>(?:(?:(?!~~)(?:.|\n))*))~~"
     }
     parse_borders = {
         'code':      '`',
@@ -155,27 +170,37 @@ def inline_parse(line):
         'strike':    '~',
     }
 
-    for key in keys: # for each type of line
-        if re.search(detection_regex[key], line): # if the current line is one of this type
-            sub_lines = re.split(detection_regex[key], line) # we try to split it
-            if sub_lines != ['', line, '']: # if it is not an atom
-                for sub_line in sub_lines: # we parse every sublines and we add them
-                    out += inline_parse(sub_line)
-                return out
-            break
+    n = len(line)
+    matches = {}
+    for key in keys:
+        match = re.search(detection_regex[key], line)
+        if match == None:
+            matches[key] = n + 1
+        else:
+            matches[key] = match.start()
 
-    # If we arrive here, that's because 'line' is an atom.
-    # Congratulations !
-    # Now we are going to parse it.
+    key = min(keys, key = lambda x: matches[x])
 
-    for key in keys: # for each type of line
-        if re.search(detection_regex[key], line): # if the current line is of this type
-            inside = re.sub(parse_regex[key], r"\g<inside>", line) # we parse it and return the result
-            return parse_borders[key] + (inline_parse(inside) if key not in ('code', 'latex') else inside) + parse_borders[key]
+    # Same as in block_parse
+    if matches['latex'] != n + 1:
+        key = 'latex'
+    if matches['code'] != n + 1:
+        key = 'code'
+
+    if matches[key] != n + 1:
+        sub_lines = re.split(detection_regex[key], line)
+        if sub_lines != ['', line, '']:
+            for sub_line in sub_lines:
+                out += inline_parse(sub_line)
+            return out
+        inside = re.sub(parse_regex[key], r"\g<inside>", line)
+        if key in ('code', 'latex'):
+            return parse_borders[key] + inside + parse_borders[key]
+        else:
+            return parse_borders[key] + inline_parse(inside) + parse_borders[key]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg, yet, we can do smth to it
     line = re.sub(r"[ ]*<br>(?=\n|$)", r"/", line)
-
     return line
 
 # Main
@@ -196,10 +221,9 @@ def main():
 
     # Reading the input file
     inputFile = open(inFile, 'r')
-    contents = inputFile.read()
 
     # Writing in the output file
-    output.write(block_parse(contents))
+    output.write(block_parse(inputFile.read()))
     inputFile.close()
     output.close()
     print("mdbg output file written in :", outFile)
