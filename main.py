@@ -10,14 +10,14 @@
 
 # ********************************** IMPORTS **********************************
 
+
+# Others
+import argparse
+
 # Convert modules
 import md2mdbg
 import mdbg2tex
 import mdbg2html
-
-# Others
-import argparse
-import re
 
 
 # ****************************** ARGPARSE DATA ********************************
@@ -36,13 +36,15 @@ def argparse_use():
     parser.add_argument('input', type=argparse.FileType('r'),
                         help="File in input")
 
-    parser.add_argument('--output', '-o', help="""output file. If not specified, mdbg will wrote it in
-input.format where input is the name of the input file
-(whithout its extention mdbg recognises it).""")
+    parser.add_argument(
+        '--output', '-o', help="output file. If not specified, mdbg will wrote"
+        "it in input.format where input is the name of the "
+        "input file (whithout its extention mdbg recognises it).")
 
     formatInOut = parser.add_argument_group(
-        title="Syntax Options", description="""input options begin with an lower case,
-        Output options begin with a Upper Case.""")
+        title="Syntax Options",
+        description="input options begin with an lower case,"
+        "Output options begin with a Upper Case.")
     formatIn = formatInOut.add_mutually_exclusive_group(required=True)
     formatOut = formatInOut.add_mutually_exclusive_group(required=True)
 
@@ -62,9 +64,10 @@ input.format where input is the name of the input file
     latexOptions.add_argument('--title', help="Title of the document")
     latexOptions.add_argument('--date', help="Date")
     latexOptions.add_argument('--author', help="Author(s) of the document")
-    latexOptions.add_argument('--packages', help="""list of additionnal packages with syntax
-{[options1]{package1},[options2]{package2},...}
-(none by default)""")
+    latexOptions.add_argument(
+        '--packages', help="list of additionnal packages"
+        " with syntax {[options1]{package1},[options2]{package2},...}"
+        "(none by default)")
     latexOptions.add_argument('--documentclass', help='class of the document',
                               default='article')
     latexOptions.add_argument('--roboto', help="Use of robotoMono font",

@@ -77,9 +77,9 @@ def bolden(matchObj, argv):
 def italien(matchObj, argv):  # italicien ? italicize ?
     # c.f. bolden()
     it = matchObj.group('it')
-    left1 = re.findall(r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)" +
+    left1 = re.findall(r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)"
                        "\*\*(?:(?!(?:\*\*))[^ ])", it)
-    right1 = re.findall(r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])" +
+    right1 = re.findall(r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])"
                         "\*\*(?:(?!(?:\*\*))\W)", it)
     left2 = re.findall(
         "^_((?!(?:_))[^ ])|(?:(?!(?:_))\W)_(?:(?!(?:_))[^ ])", it)
@@ -95,9 +95,9 @@ def italien(matchObj, argv):  # italicien ? italicize ?
 def striken(matchObj, argv):
     # c.f. bolden()
     strike = matchObj.group('strike')
-    left1 = re.findall(r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)" +
+    left1 = re.findall(r"^\*\*((?!(?:\*\*))[^ ])|(?:(?!(?:\*\*))\W)"
                        "\*\*(?:(?!(?:\*\*))[^ ])", strike)
-    right1 = re.findall(r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])" +
+    right1 = re.findall(r"(?:(?!(?:\*\*))[^ ])\*\*$|(?:(?!(?:\*\*))[^ ])"
                         "\*\*(?:(?!(?:\*\*))\W)", strike)
     left2 = re.findall(
         "^~~((?!(?:~~))[^ ])|(?:(?!(?:~~))\W)~~(?:(?!(?:~~))[^ ])", strike)
@@ -118,7 +118,7 @@ def tree_parse(matchObj, argv):
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
     out_str = "\n\\begin{center}" if option == 'c' else ""
-    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"+
+    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
     "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers
     # LuaLaTeX to compile (the algorithm aiming at computing distance
@@ -153,8 +153,8 @@ def ntree_parse(matchObj, argv):
     option = matchObj.group('option')
     tree = matchObj.group('tree')
     out_str = "\n\\begin{center}" if option == 'c' else ""
-    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]" + \
-        "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
+    "\n\\graph[binary tree layout, fresh nodes]{\n"
     out_str += tree + "};\n\\end{tikzpicture}\n" + \
         ("\\end{center}\n" if option == 'c' else "")
     return out_str
@@ -204,7 +204,7 @@ def enumerate_parse(i, matchObj, argv):
     enum = matchObj.group(0)
     out = (("    " * i + "1. ") if i != 1 else "") + "\\begin{enumerate}\n"
     for item in re.findall(
-            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)[0-9]+\. " +
+            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)[0-9]+\. "
             "((?:(?!\n[ ]{4,}[0-9]+\. )(?:.|\n))*)", enum):
         out += (r"\item " if item != '' and
                 item[0:min(len(item), 6)] != "\\begin" else "") + item + '\n'
@@ -325,9 +325,8 @@ def parse(paragraph, argv):
     # Operations on non-LaTeX text
     # For bold, italic etc. LaTeX must be put aside : paragraph is splitted
     # into LaTeX parts and non-LaTeX parts which are called fragments
-    fragments = re.split(
-        r"(\$(?:(?!\$)(?:.|\n))*\$|\\\[(?:(?!(?:\\\[|\\\]))(?:.|\n))*\\\])",
-        paragraph)
+    fragments = re.split(r"(\$(?:(?!\$)(?:.|\n))*\$|"
+                         "\\\[(?:(?!(?:\\\[|\\\]))(?:.|\n))*\\\])", paragraph)
 
     # Each style has it own function that checks if there are no subtle syntax
     # problems
@@ -419,7 +418,7 @@ def parse(paragraph, argv):
             pattern, lambda x: enumerate_parse(i, x, argv), paragraph)
 
     # Parsing tables
-    paragraph = re.sub(r"((\|[^\n|]+)*)(\s)*\|?(\s)*((\| ?:?-+:? ?)+)" +
+    paragraph = re.sub(r"((\|[^\n|]+)*)(\s)*\|?(\s)*((\| ?:?-+:? ?)+)"
                        "\|[ \t]*\n[ \t]*((((\|([^|\n]*))*)\|?[ \t]*\n?)+)",
                        lambda x: table_parse(x, argv), paragraph)
 

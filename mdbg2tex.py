@@ -107,10 +107,10 @@ def graph_parse(matchObj, argv):
     option = matchObj.group('option')
     option = option if option is not None else ''
     graph = matchObj.group('graph')
-    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em," +\
-        " draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth," +\
-        " rounded corners, semithick]\n\\graph [level distance=1cm," +\
-        "sibling sep=.5em, sibling distance=1cm,"
+    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em,"
+    " draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth,"
+    " rounded corners, semithick]\n\\graph [level distance=1cm,"
+    "sibling sep=.5em, sibling distance=1cm,"
     out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
     return out
 
@@ -263,7 +263,7 @@ def block_parse(block, argv):  # main parsing function
         'latex':    r"(\\\[(?:.|\n)*?\\\])",
         'title':    r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':  r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
-        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)" + \
+        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)"
         "[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':    r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation': r"((?:^|(?<=\n))(?:> .*\n?)+)",
@@ -277,16 +277,16 @@ def block_parse(block, argv):  # main parsing function
         'code':  r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':       r"(?P<everything>.*)",
-        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?" +\
+        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?"
         " (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
-        'table':       r"(?:!!tab (?P<option>.*?)\n)?" + \
+        'table':       r"(?:!!tab (?P<option>.*?)\n)?"
         "(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation':   r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
-        'tree':  r"!\[(?:(?P<option>[a-z])-)?n?TREE" + \
+        'tree':  r"!\[(?:(?P<option>[a-z])-)?n?TREE"
         " (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
-        'graph': r"(?:!!(?P<option>.*)\n)?!\[GRAPH " + \
+        'graph': r"(?:!!(?P<option>.*)\n)?!\[GRAPH "
         "(?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
 
@@ -362,9 +362,9 @@ def inline_parse(line, argv):
         1: {
             'code':        r"(`[^`\n]*?`)",
             'latex':       r"(\$[^$]*\$)",
-            'quote1':      r"((?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)" +
+            'quote1':      r"((?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)"
             "\"|\"(?=\W)).)*?)\"(?=\W|$))",
-            'quote2':      r"((?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'" +
+            'quote2':      r"((?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'"
             "(?=\W)).)*?)'(?=\W|$))",
             'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
             'superscript': r"(\^\{[^\n\{\}]*\})",
@@ -385,9 +385,9 @@ def inline_parse(line, argv):
         1:  {
             'code':        r"`(?P<inside>[^`\n]*)`",
             'latex':       r"\$(?P<inside>[^\$]*)\$",
-            'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\"" +
+            'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\""
             "|\"(?=\W)).)*?)\"(?=\W|$)",
-            'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'" +
+            'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'"
             "(?=\W)).)*?)'(?=\W|$)",
             'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
             'superscript': r"\^\{(?P<inside>[^\n\{\}]*)\}",
@@ -515,23 +515,8 @@ def inline_parse(line, argv):
 
 def main(argv):
 
-    # Preparing arguments and files
-    # If some help is asked ?
-    # if argv['help']:
-    #     print(doc)
-    #     return 0
-
-    # Treating arguments
-    # inFile = argv['input']
-    outFile = argv['output']
-
-    # In case of no arguments given
-    # if inFile == '':
-    #     print(doc)
-    #     return -1
-
     # Preparing output file
-    output = open(outFile, 'w')
+    output = open(argv['output'], 'w')
     output.seek(0)
 
     # Reading the input file
@@ -578,7 +563,7 @@ def main(argv):
         if 'tikz' in package:
             # TikZ libraries for trees
             output.write(
-                "\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n" +
+                "\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n"
                 "\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
@@ -593,11 +578,11 @@ def main(argv):
     if '`' in contents:
         # If the document is likely to contain a piece of code
         output.write(
-            r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet}," +
-            " stringstyle=\color{Green}, commentstyle=\color{Gray}, " +
-            "identifierstyle=\color{NavyBlue}, numberstyle=\color{Gray}," +
-            " numbers=left, breaklines=true,breakatwhitespace=true," +
-            " breakautoindent=true,breakindent=5pt," +
+            r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},"
+            " stringstyle=\color{Green}, commentstyle=\color{Gray}, "
+            "identifierstyle=\color{NavyBlue}, numberstyle=\color{Gray},"
+            " numbers=left, breaklines=true,breakatwhitespace=true,"
+            " breakautoindent=true,breakindent=5pt,"
             "showstringspaces=false, tabsize=4}\n")
 
     # Presentation
@@ -625,8 +610,8 @@ def main(argv):
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
     main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
-    main_string = re.sub(
-        r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
+    main_string = re.sub(r"\\medskip[\n]{1,}\\medskip",
+                         r"\n\\medskip\n", main_string)
 
     # Writing the main string in the output file
     output.write(main_string)
@@ -637,11 +622,4 @@ def main(argv):
     inputFile.close()
     output.close()
 
-    print("LaTeX output file written in :", outFile)
-
-
-# Execution
-# if __name__ == '__main__':
-#     main(argv)
-# else:
-#     print(doc)
+    print("LaTeX output file written in :", argv['output'])
