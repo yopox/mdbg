@@ -118,8 +118,8 @@ def tree_parse(matchObj, argv):
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
     out_str = "\n\\begin{center}" if option == 'c' else ""
-    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"+
-    "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
+    out_str += "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers
     # LuaLaTeX to compile (the algorithm aiming at computing distance
     # between elements of the graphs is written in Lua)

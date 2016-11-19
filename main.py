@@ -54,9 +54,9 @@ input.format where input is the name of the input file
     formatOut.add_argument('-Tex', action="store_true",
                            help="Indicate that the output Syntax is LaTeX")
     formatOut.add_argument('-Mdbg', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX")
+                           help="Indicate that the output Syntax is mdbg")
     formatOut.add_argument('-Html', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX")
+                           help="Indicate that the output Syntax is HTML")
 
     latexOptions = parser.add_argument_group(title="LaTeX options")
     latexOptions.add_argument('--title', help="Title of the document")
