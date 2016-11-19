@@ -10,7 +10,6 @@ import sys
 
 # Block parsing
 
-
 def block_code_parse(matchObj, argv):  # to parse blocks of code
     # Option syntax : "java" if wanted language is java, and "nb-java" if
     # wanted language is java AND non breaking is wanted
@@ -46,15 +45,12 @@ def tree_parse(matchObj, argv):
 
 
 def binary_tree_parse(matchObj, argv):
-    # Only possible option :
-    #   - c : center
-    option = matchObj.group('option')
     # nodes contains every couple like 'L 42' (see readme.md for the syntax)
     nodes = [list(x) for x in re.findall(
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
-    out = "\n\\begin{center}" if option == 'c' else ""
-    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]" +\
+    out = ''
+    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]" + \
         "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers LuaLaTeX
     # to compile (the algorithm aiming at computing distance
@@ -80,8 +76,7 @@ def binary_tree_parse(matchObj, argv):
         else:
             return re.sub(r"\n ?\n", r"\n", ans) + "};\n"
 
-    out += get_tree(argv) + "\\end{tikzpicture}\n" + \
-        ("\\end{center}\n" if option == 'c' else "")
+    out += get_tree(argv) + "\\end{tikzpicture}\n"
     return out
 
 
@@ -90,14 +85,12 @@ def ntree_parse(matchObj, argv):
     #   - c : center
     # /!\ if you want to use bold or italic etc. in a nTREE
     #    you must type it in LaTeX, not in MarkdownBG
-    option = matchObj.group('option')
     tree = matchObj.group('tree')
-    out = "\n\\begin{center}" if option == 'c' else ""
+    out = ''
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]" +\
         "\n\\graph[binary tree layout, fresh nodes]{\n"
     # the syntax we use is the syntax used by the sub package 'graph' of TikZ
-    out += tree + "};\n\\end{tikzpicture}\n" + \
-        ("\\end{center}\n" if option == 'c' else "")
+    out += tree + "};\n\\end{tikzpicture}\n"
     return out
 
 
@@ -108,7 +101,7 @@ def graph_parse(matchObj, argv):
     option = option if option is not None else ''
     graph = matchObj.group('graph')
     out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em," +\
-        " draw=black!20, thick, fill=white, font=\\footnotesize},>=stealth," +\
+        " draw=black!20, thick, fill=white, font=\\footnotesize, minimum width=0.53cm},>=stealth," +\
         " rounded corners, semithick]\n\\graph [level distance=1cm," +\
         "sibling sep=.5em, sibling distance=1cm,"
     out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
@@ -254,53 +247,51 @@ def block_parse(block, argv):  # main parsing function
     # A leaf is a piece of inline text or a block "elementary brick"
 
     keys = ['code', 'comment', 'latex', 'title', 'itemize',
-            'enumerate', 'table', 'quotation', 'tree', 'graph']
+            'enumerate', 'table', 'quotation', 'tree', 'graph', 'center']
 
     detection_regex = {
         # These regexps detect the blocks and split them correctly
-        'code':     r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
-        'comment':  r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
-        'latex':    r"(\\\[(?:.|\n)*?\\\])",
-        'title':    r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
-        'itemize':  r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
-        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)" + \
-        "[0-9]+\. (?:.|\n(?!\n))*)+)",
-        'table':    r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
+        'code':      r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
+        'comment':   r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
+        'latex':     r"(\\\[(?:.|\n)*?\\\])",
+        'title':     r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':   r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
+        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)" + "[0-9]+\. (?:.|\n(?!\n))*)+)",
+        'table':     r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation': r"((?:^|(?<=\n))(?:> .*\n?)+)",
-        'tree':       r"(!\[(?:[a-z]-)?n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
-        'graph':       r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
+        'tree':      r"(!\[n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
+        'graph':     r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)",
+        'center':    r"([(]{3}\n(?:.|\n)*?\n[)]{3})"
     }
 
     parse_regex = {
         # These regexps and those which follow are to parse the blocks
         # correctly
-        'code':  r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
-        'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
-        'latex':       r"(?P<everything>.*)",
-        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?" + \
-        " (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
-        'itemize':     r"(?:.|\n)*",
-        'enumerate':   r"(?:.|\n)*",
-        'table':       r"(?:!!tab (?P<option>.*?)\n)?" + \
-        "(?P<table>(?:\|(?:.*?\|)+\n)+)",
-        'quotation':   r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
-        'tree':  r"!\[(?:(?P<option>[a-z])-)?n?TREE" + \
-        " (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
-        'graph': r"(?:!!(?P<option>.*)\n)?!\[GRAPH " + \
-        "(?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
+        'code':      r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        'comment':   r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
+        'latex':     r"(?P<everything>.*)",
+        'title':     r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)? (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'itemize':   r"(?:.|\n)*",
+        'enumerate': r"(?:.|\n)*",
+        'table':     r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
+        'quotation': r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
+        'tree':      r"!\[n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
+        'graph':     r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!",
+        'center':    r"[(]{3}\n(?P<inside>(?:.|\n)*?\n)[)]{3}"
     }
 
     parse_repl = {
-        'code': lambda x: block_code_parse(x, argv),
-        'comment': "% \g<comment>",
-        'latex': "\g<everything>",
-        'title': lambda x: title_parse(x, argv),
-        'itemize': lambda x: itemize_parse(x, argv),
+        'code':      lambda x: block_code_parse(x, argv),
+        'comment':   r"% \g<comment>",
+        'latex':     r"\g<everything>",
+        'title':     lambda x: title_parse(x, argv),
+        'itemize':   lambda x: itemize_parse(x, argv),
         'enumerate': lambda x: enumerate_parse(x, argv),
-        'table': lambda x: table_parse(x, argv),
+        'table':     lambda x: table_parse(x, argv),
         'quotation': lambda x: quote_parse(x, argv),
-        'tree': lambda x: tree_parse(x, argv),
-        'graph': lambda x: graph_parse(x, argv)
+        'tree':      lambda x: tree_parse(x, argv),
+        'graph':     lambda x: graph_parse(x, argv),
+        'center':    "\\begin{center}\n\g<inside>\n\\end{document}"
     }
 
     n = len(block)
