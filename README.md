@@ -320,42 +320,6 @@ Will produce this :
 
 ![Colors](http://www.mirari.fr/VUmg)
 
-# mdbg2tex help
-```
-mdbg2tex help
-
-Usage :
-    mdbg2tex.py <input> <options> (normal use of the function, provides a fresh .tex document)
-    mdbg2tex.py --help (to get this text exactly)
-
-Options :
-    -o : shortcut for --output
-    --ouput <output> : output file name (same as input file name by default)
-
-    -d : shortcut for --date
-    --date <date> : date of the document (none by default)
-
-    -a : shortcut for --author
-    --author <author> : author of the document (none by default)
-
-    -t : shortcut for --title
-    --title <title> : title of the document (none by default)
-
-    -c : shortcut for --documentclass
-    --documentclass <class> : document class (article by default)
-
-    -p : shortcut for --packages
-    --packages <pcks> : list of additionnal packages with syntax
-                        {[options1]{package1},[options2]{package2},...}
-                        (none by default)
-
-    -T : shortcut for --tableofcontents
-    --tableofcontents : if a table of contents is needed ('on' by default)
-
-    -r : shortcut for --robot option
-    --robot : put this option if you want to use RobotMono font for your code
-```
-
 # pgfmanual
 
 [Here](http://ftp.oleane.net/pub/CTAN/graphics/pgf/base/doc/pgfmanual.pdf) is a link of a recent and accurate version of pgf-tikz manual.
