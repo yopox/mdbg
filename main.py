@@ -35,7 +35,8 @@ def argparse_use():
     parser.add_argument('input', type=argparse.FileType('r'),
                         help="File in input.")
 
-    parser.add_argument('--output', '-o', help="""Output file. If not specified, mdbg will wrote it in input.format where input is the name of the input file (without its extention mdbg recognises it).""")
+    parser.add_argument(
+        '--output', '-o', help="""Output file. If not specified, mdbg will wrote it in input.format where input is the name of the input file (without its extention mdbg recognises it).""")
 
     formatInOut = parser.add_argument_group(
         title="Syntax options", description="""Input options begin with a lowercase, output options begin with an uppercase.""")
@@ -58,7 +59,8 @@ def argparse_use():
     latexOptions.add_argument('--title', help="Title of the document.")
     latexOptions.add_argument('--date', help="Date.")
     latexOptions.add_argument('--author', help="Author(s) of the document.")
-    latexOptions.add_argument('--packages', help="""List of additionnal packages with the following syntax {[options1]{package1},[options2]{package2},...} (none by default).""")
+    latexOptions.add_argument(
+        '--packages', help="""List of additionnal packages with the following syntax {[options1]{package1},[options2]{package2},...} (none by default).""")
     latexOptions.add_argument('--documentclass', help='Class of the document.',
                               default='article')
     latexOptions.add_argument('--roboto', help="Use of robotoMono font.",

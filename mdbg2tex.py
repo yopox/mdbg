@@ -272,7 +272,8 @@ def block_parse(block, argv):  # main parsing function
     }
 
     parse_regex = {
-        # These regexps and those which follow are to parse the blocks correctly
+        # These regexps and those which follow are to parse the blocks
+        # correctly
         'code':  r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':       r"(?P<everything>.*)",
@@ -476,7 +477,7 @@ def inline_parse(line, argv):
     supl_regex = [
         r"^[-\*_]{3,}",                           # horizontal line
         r"\* \* \*",                              # removing decoration
-        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", # no indent
+        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)",  # no indent
         r"_",                                     # replacing _ by \_
         r"&",                                     # replacing & by \&
         r"#",                                     # replacing # by \#
