@@ -569,5 +569,5 @@ def main():
 # Execution
 if __name__ == '__main__':
     main()
-else:
-    print(doc)
+# else:
+#     print(doc)

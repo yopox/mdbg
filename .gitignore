@@ -2,3 +2,5 @@
 *.html
 
 *.tex
+**/__pycache__/**
+**/.tmp*
