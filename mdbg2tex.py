@@ -204,8 +204,8 @@ def table_parse(matchObj, argv):
                     # if it is an itemize for example)
                     out += block_parse(element, argv) + '&'
             out = out[0:-1] + '\\\\\n'
-    out = out[0:-3] + '\\\\\n\\hline\n\\end{tabular}\n\\end{center}\n'
 
+    out = out[0:-3] + '\\\\\n\\hline\n\\end{tabular}\n\\end{center}\n'
     return out
 
 
@@ -248,16 +248,16 @@ def block_parse(block, argv):  # main parsing function
     #   - a tree or a ntree
     #   - a comment
     #   - something between two of the blocks above
-    # 'block' is going to be splitted into sub-blocks that will
+    # 'block' is going to be split into sub-blocks that will
     # be treated recursively
     # A block is some kind of node in a tree
-    # A leaf is a piece of inline text or an block "elementary brick"
+    # A leaf is a piece of inline text or a block "elementary brick"
 
     keys = ['code', 'comment', 'latex', 'title', 'itemize',
             'enumerate', 'table', 'quotation', 'tree', 'graph']
 
     detection_regex = {
-        # these regexps are to detect the blocks and to split them correctly
+        # These regexps detect the blocks and split them correctly
         'code':     r"(```[^\n]*\n(?:(?!```)(?:.|\n))*\n```)",
         'comment':  r"(<!\-\-(?:(?!\-\->)(?:.|\n))*\-\->)",
         'latex':    r"(\\\[(?:.|\n)*?\\\])",
@@ -272,12 +272,11 @@ def block_parse(block, argv):  # main parsing function
     }
 
     parse_regex = {
-        # those regexps and those which follow are to parse the blocks
-        # correctly
+        # These regexps and those which follow are to parse the blocks correctly
         'code':  r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':     r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':       r"(?P<everything>.*)",
-        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?" +\
+        'title':       r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?" + \
         " (?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':     r"(?:.|\n)*",
         'enumerate':   r"(?:.|\n)*",
@@ -307,7 +306,7 @@ def block_parse(block, argv):  # main parsing function
 
     # matches is going to contain couples (i, j) where i is a key in keys
     # and j is the position of the first key-element in the block
-    # if there is no key-element in the block the position is set to n + 1
+    # if there is no key-element in the block, the position is set to n + 1
     # where n is the length of the block
     matches = {}
     for key in keys:
@@ -317,19 +316,19 @@ def block_parse(block, argv):  # main parsing function
         else:
             matches[key] = match.start()
 
-    # we take the key the element of which is the first in the block
+    # We take the key of the element which is the first in the block
     key = min(keys, key=lambda x: matches[x])
 
-    # if there is code/latex we have to chose it before other blocks (and code
+    # If there is code/latex we have to choose it before other blocks (and code
     # before latex)
     if matches['latex'] != n + 1:
         key = 'latex'
     if matches['code'] != n + 1:
         key = 'code'
 
-    # block is going to be splitted into the first key-element and the rest of
+    # block is going to be split into the first key-element and the rest of
     # the string
-    if matches[key] != n + 1:  # if this element is indeed existing
+    if matches[key] != n + 1:  # if this element exists
         sub_blocks = re.split(detection_regex[key], block)
         if sub_blocks != ['', block, '']:
             for sub_block in sub_blocks:
@@ -337,9 +336,10 @@ def block_parse(block, argv):  # main parsing function
             return out
         return re.sub(parse_regex[key], parse_repl[key], block)
 
-    # If we arrive to this point, this means block is not a block; it is just
+    # If we arrive to this point, it means that block isn't a block ; it is just
     # an inline part so we just have to
     return inline_parse(block, argv)
+
 
 # Inline parsing
 
@@ -349,12 +349,11 @@ def inline_parse(line, argv):
         return line
 
     out = ''
-
     keys = {
-        # things which take only one argument
+        # Things which take only one argument
         1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript',
             'subscript', 'bold', 'underline', 'italic', 'strike'],
-        # things which take two arguments
+        # Things which take two arguments
         2: ['color', 'link1', 'link2']
     }
 
@@ -473,11 +472,11 @@ def inline_parse(line, argv):
                     parse_borders[key[0]][key[1]][2]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg,
-    # yet, we can do smth to it
+    # yet, we can do something to it
     supl_regex = [
         r"^[-\*_]{3,}",                           # horizontal line
         r"\* \* \*",                              # removing decoration
-        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)",  # no indent
+        r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)", # no indent
         r"_",                                     # replacing _ by \_
         r"&",                                     # replacing & by \&
         r"#",                                     # replacing # by \#
@@ -510,53 +509,39 @@ def inline_parse(line, argv):
 
     return line
 
+
 # Main
 
 
 def main(argv):
-
-    # Preparing arguments and files
-    # If some help is asked ?
-    # if argv['help']:
-    #     print(doc)
-    #     return 0
-
     # Treating arguments
-    # inFile = argv['input']
     outFile = argv['output']
-
-    # In case of no arguments given
-    # if inFile == '':
-    #     print(doc)
-    #     return -1
 
     # Preparing output file
     output = open(outFile, 'w')
     output.seek(0)
 
-    # Reading the input file
+    # Reading input file
     inputFile = argv['input']
     contents = inputFile.read()
 
-    # Writing in the output file
+    # Writing to output file
     # Document class
     output.write("\\documentclass{" + argv['documentclass'] + "}\n")
 
     # Packages
     # Some packages are loaded by default, the user can ask to load more
     # packages by putting them in the -p or --packages option
-
     additionnal_packages = []
     if argv['packages']:
         temp = argv['packages']
         if temp[0] != '{' or temp[-1] != '}':
-            # If the user doesn't know the syntax of argument -p...
+            # If the user doesn't know how argument -p works...
             print(doc)
             return -1
         else:
             temp = temp[1:-1]
             additionnal_packages = temp.split(', ')
-
     packages = ["{fontspec}",
                 "[frenchb]{babel}",
                 "[usenames,dvipsnames,svgnames,table]{xcolor}",
@@ -585,7 +570,7 @@ def main(argv):
             output.write(
                 "\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
 
-    # RobotMono font
+    # RobotoMono font
     if argv['roboto']:
         output.write("\\usepackage{roboto}\n")
 
@@ -621,7 +606,7 @@ def main(argv):
     # Creation of the main string
     main_string = block_parse(contents, argv)
 
-    # Formating line breaks
+    # Formatting line breaks
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
     main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
@@ -638,10 +623,3 @@ def main(argv):
     output.close()
 
     print("LaTeX output file written in :", outFile)
-
-
-# Execution
-# if __name__ == '__main__':
-#     main(argv)
-# else:
-#     print(doc)
