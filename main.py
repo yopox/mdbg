@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # Little tool to convert everything (or as anything as we can do)
-#   to cool mdbg documents (or other things).
-# Written by YoPox, Hadrien and pierrotdu18
+# to cool mdbg documents (or other things).
+# Written by Hadrien, pierrotdu18, and YoPox
 
 # WARNING :
 # No convert functions should be implemented here.
-# This module call the other convert modules.
+# This module calls convert modules.
 
-
-# ********************************** IMPORTS **********************************
+# IMPORTS
 
 
 # Others
@@ -20,7 +19,7 @@ import mdbg2tex
 import mdbg2html
 
 
-# ****************************** ARGPARSE DATA ********************************
+# ARGPARSE DATA
 
 description = """This is mdbg : a little tool to convert everything
     (or as anything as we can do) to cool mdbg documents (or other things).
@@ -34,7 +33,7 @@ def argparse_use():
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
 
     parser.add_argument('input', type=argparse.FileType('r'),
-                        help="File in input")
+                        help="File in input.")
 
     parser.add_argument(
         '--output', '-o', help="output file. If not specified, mdbg will wrote"
@@ -43,41 +42,45 @@ def argparse_use():
 
     formatInOut = parser.add_argument_group(
         title="Syntax Options",
-        description="input options begin with an lower case,"
-        "Output options begin with a Upper Case.")
+        description="Input options begin with a lowercase,"
+        "output options begin with an uppercase.")
+
     formatIn = formatInOut.add_mutually_exclusive_group(required=True)
     formatOut = formatInOut.add_mutually_exclusive_group(required=True)
 
     formatIn.add_argument('-md', action="store_true",
-                          help="Indicate that the input Syntax is markdown")
+                          help="Indicate that the input Syntax is markdown.")
     formatIn.add_argument('-mdbg', action="store_true",
-                          help="Indicate that the input Syntax is mdbg")
+                          help="Indicate that the input Syntax is mdbg.")
 
     formatOut.add_argument('-Tex', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX")
+                           help="Indicate that the output Syntax is LaTeX.")
     formatOut.add_argument('-Mdbg', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX")
+                           help="Indicate that the output Syntax is mdbg.")
     formatOut.add_argument('-Html', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX")
+                           help="Indicate that the output Syntax is HTML.")
 
     latexOptions = parser.add_argument_group(title="LaTeX options")
     latexOptions.add_argument('--title', help="Title of the document")
     latexOptions.add_argument('--date', help="Date")
     latexOptions.add_argument('--author', help="Author(s) of the document")
     latexOptions.add_argument(
-        '--packages', help="list of additionnal packages"
-        " with syntax {[options1]{package1},[options2]{package2},...}"
+        '--packages', help="list of additionnal packages with the"
+        " following syntax {[options1]{package1},[options2]{package2},...}"
         "(none by default)")
     latexOptions.add_argument('--documentclass', help='class of the document',
                               default='article')
-    latexOptions.add_argument('--roboto', help="Use of robotoMono font",
+    latexOptions.add_argument('--roboto', help="Use of robotoMono font.",
                               action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
-                              help="Display a table of Contents", default=True)
+                              help="Display the table of Contents."
+                              "(default=True)", default=True)
 
     return parser
 
-# *********************************** MAIN ****************************
+
+# MAIN
+
 
 if __name__ == '__main__':
     args = argparse_use().parse_args()
@@ -113,7 +116,8 @@ if __name__ == '__main__':
         'roboto': args.roboto,
         'packages': args.packages,
     }
-    print(argv)
+    # Useful for debugging
+    # print(argv)
 
     if args.md:
         argv2 = dict(argv)
