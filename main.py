@@ -36,14 +36,12 @@ def argparse_use():
                         help="File in input.")
 
     parser.add_argument(
-        '--output', '-o', help="output file. If not specified, mdbg will wrote"
-        "it in input.format where input is the name of the "
-        "input file (whithout its extention mdbg recognises it).")
+        '--output', '-o', help="output file. If not specified, mdbg will wrot it in input.format"
+        "where input is the name of the input file (whithout its extention mdbg recognises it).")
 
     formatInOut = parser.add_argument_group(
         title="Syntax Options",
-        description="Input options begin with a lowercase,"
-        "output options begin with an uppercase.")
+        description="Input options begin with a lowercase, output options begin with an uppercase.")
 
     formatIn = formatInOut.add_mutually_exclusive_group(required=True)
     formatOut = formatInOut.add_mutually_exclusive_group(required=True)
@@ -65,16 +63,12 @@ def argparse_use():
     latexOptions.add_argument('--date', help="Date")
     latexOptions.add_argument('--author', help="Author(s) of the document")
     latexOptions.add_argument(
-        '--packages', help="list of additionnal packages with the"
-        " following syntax {[options1]{package1},[options2]{package2},...}"
-        "(none by default)")
-    latexOptions.add_argument('--documentclass', help='class of the document',
-                              default='article')
-    latexOptions.add_argument('--roboto', help="Use of robotoMono font.",
-                              action="store_true")
+        '--packages', help="list of additionnal packages with the following syntax"
+        "{[options1]{package1},[options2]{package2},...}(none by default)")
+    latexOptions.add_argument('--documentclass', help='class of the document', default='article')
+    latexOptions.add_argument('--roboto', help="Use of robotoMono font.", action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
-                              help="Display the table of Contents."
-                              "(default=True)", default=True)
+                              help="Display the table of Contents. (default=True)", default=True)
 
     return parser
 
