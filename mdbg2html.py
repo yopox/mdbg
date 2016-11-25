@@ -119,7 +119,7 @@ def tree_parse(matchObj, argv):
     l = len(nodes)
     out_str = "\n\\begin{center}" if option == 'c' else ""
     out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
-    "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out_str += "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers
     # LuaLaTeX to compile (the algorithm aiming at computing distance
     # between elements of the graphs is written in Lua)
@@ -154,9 +154,8 @@ def ntree_parse(matchObj, argv):
     tree = matchObj.group('tree')
     out_str = "\n\\begin{center}" if option == 'c' else ""
     out_str += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
-    "\n\\graph[binary tree layout, fresh nodes]{\n"
-    out_str += tree + "};\n\\end{tikzpicture}\n" + \
-        ("\\end{center}\n" if option == 'c' else "")
+    out_str += "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out_str += tree + "};\n\\end{tikzpicture}\n" + ("\\end{center}\n" if option == 'c' else "")
     return out_str
 
 
@@ -191,10 +190,9 @@ def itemize_parse(i, matchObj, argv):
     # This functions does the work for only ONE level, of depth i
     out = (("    " * i + "- ") if i != 1 else "") + "\\begin{itemize}\n"
     for item in re.findall(
-            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)- ((?:(?!\n[ ]{4,}- )(?:.|\n))*)",
-            itemize):
-        out += (r"\item " if item != '' and
-                item[0:min(len(item), 6)] != "\\begin" else "") + item + '\n'
+            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)- ((?:(?!\n[ ]{4,}- )(?:.|\n))*)", itemize):
+        out += (r"\item " if item != '' and item[0:min(len(item), 6)] != "\\begin" else "")
+        out += item + '\n'
     out += r"\end{itemize}"
     return out
 
@@ -204,10 +202,9 @@ def enumerate_parse(i, matchObj, argv):
     enum = matchObj.group(0)
     out = (("    " * i + "1. ") if i != 1 else "") + "\\begin{enumerate}\n"
     for item in re.findall(
-            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)[0-9]+\. "
-            "((?:(?!\n[ ]{4,}[0-9]+\. )(?:.|\n))*)", enum):
-        out += (r"\item " if item != '' and
-                item[0:min(len(item), 6)] != "\\begin" else "") + item + '\n'
+            r"(?:^(?:[ ]{4})+|\n(?:[ ]{4})+)[0-9]+\. ((?:(?!\n[ ]{4,}[0-9]+\. )(?:.|\n))*)", enum):
+        out += (r"\item " if item != '' and item[0:min(len(item), 6)] != "\\begin" else "")
+        out += item + '\n'
     out += r"\end{enumerate}"
     return out
 
@@ -284,20 +281,15 @@ def parse(paragraph, argv):
     # Everything is merged afterwards.
     inline_codes = []
     paragraph = re.sub("`(?P<code>[^`]*)`",
-                       lambda x: sep_parse_inline_code(x, inline_codes, argv),
-                       paragraph)
+                       lambda x: sep_parse_inline_code(x, inline_codes, argv), paragraph)
 
     # Parsing titles
     # Each paragraph's string begins with some '#' so regex matches only the
     # string's very beginning
-    paragraph = re.sub(r"^[#]{6} (?P<g>(.*))",
-                       r"<h6>\g<g></h6>", paragraph)
-    paragraph = re.sub(r"^[#]{5} (?P<g>(.*))",
-                       r"<h5>\g<g></h5>", paragraph)
-    paragraph = re.sub(r"^[#]{4} (?P<g>(.*))",
-                       r"<h4>\g<g></h4>", paragraph)
-    paragraph = re.sub(r"^[#]{3} (?P<g>(.*))",
-                       r"<h3>\g<g></h3>", paragraph)
+    paragraph = re.sub(r"^[#]{6} (?P<g>(.*))", r"<h6>\g<g></h6>", paragraph)
+    paragraph = re.sub(r"^[#]{5} (?P<g>(.*))", r"<h5>\g<g></h5>", paragraph)
+    paragraph = re.sub(r"^[#]{4} (?P<g>(.*))", r"<h4>\g<g></h4>", paragraph)
+    paragraph = re.sub(r"^[#]{3} (?P<g>(.*))", r"<h3>\g<g></h3>", paragraph)
     paragraph = re.sub(r"^[#]{2} (?P<g>(.*))", r"<h2>\g<g></h1>", paragraph)
     paragraph = re.sub(r"^[#]{1} (?P<g>(.*))", r"<h1>\g<g></h1>", paragraph)
 
@@ -354,12 +346,10 @@ def parse(paragraph, argv):
                 "<a href='\g<link>'>\g<text></a>", fragments[i])
             # Links like "<http://www.google.com>"
             fragments[i] = re.sub(r"\<(?P<link>https?://[^ ]*)\>",
-                                  "<a href='\g<link>'>\g<link></a>",
-                                  fragments[i])
+                                  "<a href='\g<link>'>\g<link></a>", fragments[i])
             # Links like " http://www.google.com "
             fragments[i] = re.sub(r" (?P<link>https?://[^ ]*) ",
-                                  " <a href='\g<link>'>\g<link></a> ",
-                                  fragments[i])
+                                  " <a href='\g<link>'>\g<link></a> ", fragments[i])
             # TODO : Replacing _ by \_ (only in non-LaTeX parts obviously !)
             # fragments[i] = re.sub("_", r"\_", fragments[i])
 
@@ -405,17 +395,14 @@ def parse(paragraph, argv):
     for i in range(4, 0, -1):
         pattern = r"(?:^[ ]{" + str(4 * i) + r"}|(?<=\n)[ ]{" + str(4 * i) + \
             r"})- (?:(?!(?:\n\n|\n[ ]{0," + str(4 * i - 2) + r"}- ))(?:.|\n))*"
-        paragraph = re.sub(
-            pattern, lambda x: itemize_parse(i, x, argv), paragraph)
+        paragraph = re.sub(pattern, lambda x: itemize_parse(i, x, argv), paragraph)
 
     # Enumerate
     # Same : more documentation in function parse_itemize()
     for i in range(4, 0, -1):
         pattern = r"(?:^[ ]{" + str(4 * i) + r"}|(?<=\n)[ ]{" + str(4 * i) + \
-            r"})[0-9]+\. (?:(?!(?:\n\n|\n[ ]{0," + \
-            str(4 * i - 2) + r"}[0-9]+\. ))(?:.|\n))*"
-        paragraph = re.sub(
-            pattern, lambda x: enumerate_parse(i, x, argv), paragraph)
+            r"})[0-9]+\. (?:(?!(?:\n\n|\n[ ]{0," + str(4 * i - 2) + r"}[0-9]+\. ))(?:.|\n))*"
+        paragraph = re.sub(pattern, lambda x: enumerate_parse(i, x, argv), paragraph)
 
     # Parsing tables
     paragraph = re.sub(r"((\|[^\n|]+)*)(\s)*\|?(\s)*((\| ?:?-+:? ?)+)"
@@ -424,13 +411,11 @@ def parse(paragraph, argv):
 
     # Merging inline code
     paragraph = re.sub(r"£%£%§²&(?P<i>[0-9]+)£%£%§²&",
-                       lambda x: merge_inline_code(x, inline_codes, argv),
-                       paragraph)
+                       lambda x: merge_inline_code(x, inline_codes, argv), paragraph)
 
     # Merging blocks of code
-    paragraph = re.sub(
-        r"&é\(\]°\(\-è\*@\|\{\)(?P<i>[0-9]+)&é\(\]°\(\-è\*@\|\{\)",
-        lambda x: merge_block_code(x, block_codes, argv), paragraph)
+    paragraph = re.sub(r"&é\(\]°\(\-è\*@\|\{\)(?P<i>[0-9]+)&é\(\]°\(\-è\*@\|\{\)",
+                       lambda x: merge_block_code(x, block_codes, argv), paragraph)
 
     return paragraph
 
@@ -453,8 +438,7 @@ def main(argv):
 
     # Writing in the output file
     # Document class
-    output.write(
-        """<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n""")
+    output.write("""<!DOCTYPE html>\n<html>\n<head>\n<meta charset="utf-8">\n""")
 
     # TODO : Presentation
     if argv['title']:
@@ -489,8 +473,7 @@ def main(argv):
     # Formating line breaks
     # main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
     # main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
-    # main_string = re.sub(
-    #     r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
+    # main_string = re.sub(r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
 
     # Writing the main string in the output file
     output.write(main_string)

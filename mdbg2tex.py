@@ -51,8 +51,8 @@ def binary_tree_parse(matchObj, argv):
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
     out = ''
-    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]" + \
-        "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
+    out += "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requiers LuaLaTeX
     # to compile (the algorithm aiming at computing distance
     # between elements of the graphs is written in Lua)
@@ -64,8 +64,7 @@ def binary_tree_parse(matchObj, argv):
         def aux(i, depth):
             if nodes[i][0] == 'L':
                 f = nodes[i][1]
-                return ('"' + (block_parse(f, argv)
-                               if f != '()' else '') + '"', i + 1)
+                return ('"' + (block_parse(f, argv) if f != '()' else '') + '"', i + 1)
             else:
                 (g, r1) = aux(i + 1, depth + 1)
                 (d, r2) = aux(r1, depth + 1)
@@ -88,8 +87,8 @@ def ntree_parse(matchObj, argv):
     #    you must type it in LaTeX, not in MarkdownBG
     tree = matchObj.group('tree')
     out = ''
-    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]" +\
-        "\n\\graph[binary tree layout, fresh nodes]{\n"
+    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
+    out += "\n\\graph[binary tree layout, fresh nodes]{\n"
     # the syntax we use is the syntax used by the sub package 'graph' of TikZ
     out += tree + "};\n\\end{tikzpicture}\n"
     return out
@@ -111,8 +110,7 @@ def graph_parse(matchObj, argv):
 
 def quote_parse(matchObj, argv):
     quotes = matchObj.group('quote')
-    quotes = [x for x in re.split(
-        r"(?:^|\n)> (.*)", quotes) if x != '' and x != '\n']
+    quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x != '' and x != '\n']
     out = "\n\\medskip\n\\begin{displayquote}\n"  # we use 'csquote' package
     for quote in quotes:
         # we parse recursively the content of the quotation
@@ -123,8 +121,8 @@ def quote_parse(matchObj, argv):
 
 def itemize_parse(matchObj, argv):
     itemize = matchObj.group(0)
-    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)",
-                     r"\g<item>", itemize)  # we remove left indentation
+    # we remove left indentation
+    itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
     # we split items and remove '-' symbol from each item
     items = re.split(r"(?:^|(?<=\n))- ((?:.|\n(?!- ))*)", itemize)
     # we keep only non empty items (who cares about empty items?)
@@ -132,17 +130,17 @@ def itemize_parse(matchObj, argv):
     out = "\\begin{itemize}\n"
     for item in items:
         # we parse the item recursively and indent the LaTeX code
-        out += "\t\\item " + \
-            re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>",
-                   block_parse(item, argv)) + '\n'
+        out += "\t\\item "
+        out += re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item, argv))
+        out += '\n'
     out += "\\end{itemize}\n"
     return out
 
 
 def enumerate_parse(matchObj, argv):
     enum = matchObj.group(0)
-    enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)",
-                  r"\g<item>", enum)  # we remove left indentation
+    # we remove left indentation
+    enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum)
     # we split items and remove things like '2.' from each item
     items = re.split(r"(?:^|(?<=\n))[0-9]+\. ((?:.|\n(?![0-9]+\. ))*)", enum)
     # we keep only non empty items (who cares about empty items?)
@@ -150,9 +148,9 @@ def enumerate_parse(matchObj, argv):
     out = "\\begin{enumerate}\n"
     for item in items:
         # we parse the item recursively and indent the LaTeX code
-        out += "\t\\item " + \
-            re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>",
-                   block_parse(item, argv)) + '\n'
+        out += "\t\\item "
+        out += re.sub(r"\n(?P<line>.*)", r"\n\t\g<line>", block_parse(item, argv))
+        out += '\n'
     out += "\\end{enumerate}\n"
     return out
 
@@ -170,8 +168,7 @@ def table_parse(matchObj, argv):
         if len(option) == 1:
             # if it is only a 'c' for example we center each cell of the table
             out += '{' + ('|' + option) * n + '|}'
-        # else, we have the data of every row text alignement (if the user
-        # knows the syntax)
+        # else, we have the data of every row text alignement (if the user knows the syntax)
         else:
             options = option.split()
             out += '{'
@@ -192,8 +189,7 @@ def table_parse(matchObj, argv):
             for element in re.findall(r"(?<=\|)([^\|]*)(?=\|)", line):
                 if element != '' and element != '\n':
                     # we keep only the element itself (no spaces on its sides)
-                    element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)",
-                                     r"\g<inside>", element)
+                    element = re.sub(r"(?:\s*)(?P<inside>\S.*\S)(?:\s*)", r"\g<inside>", element)
                     # we parse it as a block (we can't parse it as a line
                     # if it is an itemize for example)
                     out += block_parse(element, argv) + '&'
@@ -205,11 +201,10 @@ def table_parse(matchObj, argv):
 
 def title_parse(matchObj, argv):
     titles = {
-        'article': [r"\part", r"\section", r"\subsection", r"\subsubsection",
-                    r"\paragraph", r"\subparagraph", r'\subsubparagraph'],
-        'report':  [r"\part", r"\chapter", r"\section", r"\subsection",
-                    r"\subsubsection", r"\paragraph", r"\subparagraph",
-                    r'\subsubparagraph']
+        'article': [r"\part", r"\section", r"\subsection", r"\subsubsection", r"\paragraph",
+                    r"\subparagraph", r'\subsubparagraph'],
+        'report':  [r"\part", r"\chapter", r"\section", r"\subsection", r"\subsubsection",
+                    r"\paragraph", r"\subparagraph", r'\subsubparagraph']
     }
     level = len(matchObj.group('level')) - 1
     # if this is a 'stared' section (see readme.md)
@@ -247,8 +242,8 @@ def block_parse(block, argv):  # main parsing function
     # A block is some kind of node in a tree
     # A leaf is a piece of inline text or a block "elementary brick"
 
-    keys = ['code', 'comment', 'latex', 'title', 'itemize',
-            'enumerate', 'table', 'quotation', 'tree', 'graph', 'center']
+    keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation',
+            'tree', 'graph', 'center']
 
     detection_regex = {
         # These regexps detect the blocks and split them correctly
@@ -257,8 +252,7 @@ def block_parse(block, argv):  # main parsing function
         'latex':     r"(\\\[(?:.|\n)*?\\\])",
         'title':     r"((?:^|(?<=\n))#+\*? [^\n]*(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':   r"((?:(?:^|(?<=\n))(?:    |\t)- (?:.|\n(?!\n))*)+)",
-        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)"
-        "[0-9]+\. (?:.|\n(?!\n))*)+)",
+        'enumerate': r"((?:(?:^|(?<=\n))(?:    |\t)[0-9]+\. (?:.|\n(?!\n))*)+)",
         'table':     r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation': r"((?:^|(?<=\n))(?:> .*\n?)+)",
         'tree':      r"(!\[n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
@@ -269,35 +263,31 @@ def block_parse(block, argv):  # main parsing function
     parse_regex = {
         # These regexps and those which follow are to parse the blocks
         # correctly
-        'code':      r"```(?P<option>[^\n]*)\n"
-        "(?P<code>(?:(?!```)(?:.|\n))*)\n```",
+        'code':      r"```(?P<option>[^\n]*)\n(?P<code>(?:(?!```)(?:.|\n))*)\n```",
         'comment':   r"<!\-\-(?P<comment>(?:(?!\-\->)(?:.|\n))*)\-\->",
         'latex':     r"(?P<everything>.*)",
-        'title':     r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?"
-        "(?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
+        'title':     r"(?:^|(?<=\n))(?P<level>#+)(?P<star>\*)?(?P<title>[^\n]*)(?P<paragraph>(?:(?!\n#+ )(?:.|\n))*)",
         'itemize':   r"(?:.|\n)*",
         'enumerate': r"(?:.|\n)*",
-        'table':     r"(?:!!tab (?P<option>.*?)\n)?"
-        "(?P<table>(?:\|(?:.*?\|)+\n)+)",
+        'table':     r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation': r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
         'tree':      r"!\[n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
-        'graph':     r"(?:!!(?P<option>.*)\n)?"
-        "!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!",
+        'graph':     r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!",
         'center':    r"[(]{3}\n(?P<inside>(?:.|\n)*?\n)[)]{3}"
     }
 
     parse_repl = {
-        'code': lambda x: block_code_parse(x, argv),
-        'comment':   r"% \g<comment>",
-        'latex':     r"\g<everything>",
-        'title': lambda x: title_parse(x, argv),
-        'itemize': lambda x: itemize_parse(x, argv),
-        'enumerate': lambda x: enumerate_parse(x, argv),
-        'table': lambda x: table_parse(x, argv),
-        'quotation': lambda x: quote_parse(x, argv),
-        'tree': lambda x: tree_parse(x, argv),
-        'graph': lambda x: graph_parse(x, argv),
-        'center':    "\\begin{center}\n\g<inside>\n\\end{document}"
+        'code':         lambda x: block_code_parse(x, argv),
+        'comment':      r"% \g<comment>",
+        'latex':        r"\g<everything>",
+        'title':        lambda x: title_parse(x, argv),
+        'itemize':      lambda x: itemize_parse(x, argv),
+        'enumerate':    lambda x: enumerate_parse(x, argv),
+        'table':        lambda x: table_parse(x, argv),
+        'quotation':    lambda x: quote_parse(x, argv),
+        'tree':         lambda x: tree_parse(x, argv),
+        'graph':        lambda x: graph_parse(x, argv),
+        'center':       "\\begin{center}\n\g<inside>\n\\end{document}"
     }
 
     n = len(block)
@@ -349,8 +339,8 @@ def inline_parse(line, argv):
     out = ''
     keys = {
         # Things which take only one argument
-        1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript',
-            'subscript', 'bold', 'underline', 'italic', 'strike'],
+        1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript', 'subscript', 'bold',
+            'underline', 'italic', 'strike'],
         # Things which take two arguments
         2: ['color', 'link1', 'link2']
     }
@@ -359,10 +349,8 @@ def inline_parse(line, argv):
         1: {
             'code':        r"(`[^`\n]*?`)",
             'latex':       r"(\$[^$]*\$)",
-            'quote1':      r"((?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)"
-            "\"|\"(?=\W)).)*?)\"(?=\W|$))",
-            'quote2':      r"((?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'"
-            "(?=\W)).)*?)'(?=\W|$))",
+            'quote1':      r"((?:^|(?<=\W))\"(?! )(?:(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$))",
+            'quote2':      r"((?:^|(?<=\W))'(?! )(?:(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$))",
             'footnote':    r"(\*\*\*\{[^\n\{\}]*\})",
             'superscript': r"(\^\{[^\n\{\}]*\})",
             'subscript':   r"(_\{[^\n\{\}]*\})",
@@ -382,10 +370,8 @@ def inline_parse(line, argv):
         1:  {
             'code':        r"`(?P<inside>[^`\n]*)`",
             'latex':       r"\$(?P<inside>[^\$]*)\$",
-            'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\""
-            "|\"(?=\W)).)*?)\"(?=\W|$)",
-            'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'"
-            "(?=\W)).)*?)'(?=\W|$)",
+            'quote1':      r"(?:^|(?<=\W))\"(?! )(?P<inside>(?:(?!(?<=\W)\"|\"(?=\W)).)*?)\"(?=\W|$)",
+            'quote2':      r"(?:^|(?<=\W))'(?! )(?P<inside>(?:(?!(?<=\W)'|'(?=\W)).)*?)'(?=\W|$)",
             'footnote':    r"\*\*\*\{(?P<inside>[^\n\{\}]*)\}",
             'superscript': r"\^\{(?P<inside>[^\n\{\}]*)\}",
             'subscript':   r"_\{(?P<inside>[^\n\{\}]*)\}",
@@ -450,24 +436,19 @@ def inline_parse(line, argv):
         if key[0] == 1:
             inside = re.sub(parse_regex[key[0]][key[1]], r"\g<inside>", line)
             if key[1] in ('code', 'latex'):
-                return parse_borders[key[0]][key[1]][0] + inside + \
-                    parse_borders[key[0]][key[1]][1]
+                return parse_borders[key[0]][key[1]][0] + inside + parse_borders[key[0]][key[1]][1]
             else:
-                return parse_borders[key[0]][key[1]][0] + \
-                    inline_parse(inside, argv) + \
+                return parse_borders[key[0]][key[1]][0] + inline_parse(inside, argv) + \
                     parse_borders[key[0]][key[1]][1]
         else:
             left = re.sub(parse_regex[key[0]][key[1]], r"\g<left>", line)
             right = re.sub(parse_regex[key[0]][key[1]], r"\g<right>", line)
             if key[1] in ('link1', 'link2'):
-                return parse_borders[key[0]][key[1]][0] + left + \
-                    parse_borders[key[0]][key[1]][1] + right + \
-                    parse_borders[key[0]][key[1]][2]
+                return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] +\
+                    right + parse_borders[key[0]][key[1]][2]
             else:
-                return parse_borders[key[0]][key[1]][0] + left + \
-                    parse_borders[key[0]][key[1]][1] + \
-                    inline_parse(right, argv) + \
-                    parse_borders[key[0]][key[1]][2]
+                return parse_borders[key[0]][key[1]][0] + left + parse_borders[key[0]][key[1]][1] +\
+                    inline_parse(right, argv) + parse_borders[key[0]][key[1]][2]
 
     # If we arrive here... it is because 'line' is not a cool piece of mdbg,
     # yet, we can do something to it
@@ -480,8 +461,8 @@ def inline_parse(line, argv):
         r"#",                                     # replacing # by \#
         r"%",                                     # replacing % by \%
         r"€",                                     # replacing € by \euro{}
-        r"—",                                   # replacing — by \\textemdash\
-        r'\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)',  # links
+        r"—",                                     # replacing — by \\textemdash\
+        r'\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)',     # links
         r"\<(?P<link>https?://[^ ]*)\>",                    # links
         r"[ ]*/(?=\n|$)",                                   # newline
         r"(?<!\\)LaTeX"                                     # LaTeX
@@ -558,13 +539,11 @@ def main(argv):
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
-            output.write(
-                "\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n"
-                "\\usegdlibrary{trees, force, layered}\n")
+            output.write("\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n"
+                         "\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
-            output.write(
-                "\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
+            output.write("\\geometry{top=2cm, bottom=2cm, left=3cm, right=3cm}\n")
 
     # RobotoMono font
     if argv['roboto']:
@@ -606,8 +585,7 @@ def main(argv):
     main_string = re.sub(r"\\medskip", r"\n\\medskip\n", main_string)
     main_string = re.sub(r"[\n]{2,}", r"\n\n", main_string)
     main_string = re.sub(r"\n[\t]+\n", r"\n\n", main_string)
-    main_string = re.sub(r"\\medskip[\n]{1,}\\medskip",
-                         r"\n\\medskip\n", main_string)
+    main_string = re.sub(r"\\medskip[\n]{1,}\\medskip", r"\n\\medskip\n", main_string)
 
     # Writing the main string in the output file
     output.write(main_string)

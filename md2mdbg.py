@@ -17,8 +17,9 @@ def itemize_parse(matchObj, argv):
     itemize = re.sub(r"(?P<line>.*)", r"\t\g<line>", itemize)
 
     # Parsing each item
-    itemize = re.sub(r"(?<=- )(?P<item>(?:(?!^(?:[ ]{4})+|\t+).)*)(?=\n|$)",
-                     lambda x: inline_parse(x, argv), itemize)
+    itemize = re.sub(
+        r"(?<=- )(?P<item>(?:(?!^(?:[ ]{4})+|\t+).)*)(?=\n|$)",
+        lambda x: inline_parse(x, argv), itemize)
 
     return itemize
 
@@ -48,8 +49,7 @@ def table_parse(matchObj, argv):
             table += line + '\n'
 
     # Parsing each item
-    table = re.sub(r'(?<=\|)(?P<item>[^\|]*)(?=\|)',
-                   lambda x: inline_parse(x, argv), table)
+    table = re.sub(r'(?<=\|)(?P<item>[^\|]*)(?=\|)', lambda x: inline_parse(x, argv), table)
 
     return table
 
@@ -85,12 +85,12 @@ def block_parse(block, argv):
     }
 
     parse_repl = {
-        'code': lambda x: x.group(0),
-        'comment': lambda x: x.group(0),
-        'latex': lambda x: x.group(0),
-        'itemize': lambda x: itemize_parse(x, argv),
-        'enumerate': lambda x: enumerate_parse(x, argv),
-        'table': lambda x: table_parse(x, argv),
+        'code':         lambda x: x.group(0),
+        'comment':      lambda x: x.group(0),
+        'latex':        lambda x: x.group(0),
+        'itemize':      lambda x: itemize_parse(x, argv),
+        'enumerate':    lambda x: enumerate_parse(x, argv),
+        'table':        lambda x: table_parse(x, argv),
     }
 
     n = len(block)
