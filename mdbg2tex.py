@@ -34,7 +34,7 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
     out += code  # the code is not modified
     out += "\n\\end{lstlisting}"
     if non_breaking:
-        out += "\\begin{minipage}{\\linewidth}\n"
+        out += "\n\\end{minipage}\n"
     return out
 
 
@@ -102,9 +102,9 @@ def graph_parse(matchObj, argv):
     option = option if option is not None else ''
     graph = matchObj.group('graph')
     out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em,"
-    " draw=black!20, thick, fill=white, font=\\footnotesize, minimum "
-    "width=0.53cm},>=stealth, rounded corners, semithick]\n\\graph [level "
-    "distance=1cm, sibling sep=.5em, sibling distance=1cm,"
+    out += "draw=black!20, thick, fill=white, font=\\footnotesize, minimum "
+    out += "width=0.53cm},>=stealth, rounded corners, semithick]\n\\graph [level "
+    out += "distance=1cm, sibling sep=.5em, sibling distance=1cm,"
     out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
     return out
 

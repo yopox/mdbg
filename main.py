@@ -36,13 +36,13 @@ def argparse_use():
                         help="File in input.")
 
     parser.add_argument(
-        '--output', '-o', help="output file. If not specified, mdbg will wrote"
+        '--output', '-o', help="Output file. If not specified, mdbg will wrote "
         "it in input.format where input is the name of the "
         "input file (whithout its extention mdbg recognises it).")
 
     formatInOut = parser.add_argument_group(
         title="Syntax Options",
-        description="Input options begin with a lowercase,"
+        description="Input options begin with a lowercase, "
         "output options begin with an uppercase.")
 
     formatIn = formatInOut.add_mutually_exclusive_group(required=True)
@@ -70,7 +70,7 @@ def argparse_use():
         "(none by default)")
     latexOptions.add_argument('--documentclass', help='class of the document',
                               default='article')
-    latexOptions.add_argument('--roboto', help="Use of robotoMono font.",
+    latexOptions.add_argument('--roboto', help="Use robotoMono font.",
                               action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
                               help="Display the table of Contents."
