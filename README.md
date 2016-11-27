@@ -168,13 +168,13 @@ Description :
   - Command : `![TREE]!`
   - Root : `R "text"`
   - Node : `N "text"`
-  - Leave : `L "text"`
+  - Leaf : `L "text"`
 
 ```mdbg
-![TREE R "root" N "a node" L "a leave" L "an other leave" N "an other node" L "a leave again !" N "a node again !" L  "OneWord" L "the last leave"]!
+![TREE R "root" N "a node" L "a leaf" L "an other leaf" N "an other node" L "a leaf again !" N "a node again !" L  "OneWord" L "the last leaf"]!
 ```
 
-If you want to draw an non strictly binary tree, you can write `L ()` for a empty leaf
+If you want to draw an non strictly binary tree, you can write `L ()` for an empty leaf
 
 #### Non binary trees
 
