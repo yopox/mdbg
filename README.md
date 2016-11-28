@@ -183,16 +183,6 @@ Command : `![nTREE]!`
 ```mdbg
 ![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
-
-#### Centering
-
-You can center a tree by adding the option `c` next to the command opener :
-Command : `![c-TREE]!` or `![c-nTREE]!`
-
-```mdbg
-![c-nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
-```
-
 ### Graphs
 
 You can draw graphs with a very simple syntax (the same as nTREE syntax).
@@ -244,6 +234,15 @@ I love {red}[red] and {green}[blue witten in green] !
 ```
 
 A list of all possible colors is given at the end of this readme.
+
+### Center environnement
+
+You can center some text or some figure with this :
+```mdbg
+(((
+...
+)))
+```
 
 ### Miscellaneous
 
