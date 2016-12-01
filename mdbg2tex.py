@@ -5,6 +5,8 @@
 # Import
 import re
 import sys
+import random
+from pygments.styles import get_all_styles
 
 # Parsing functions
 
@@ -24,15 +26,28 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
     if non_breaking:
         # Putting the code in a minipage will prevent from page breaking
         out += "\\begin{minipage}{\\linewidth}\n"
-    if option != '':
-        if option.lower() == 'ocaml':
-            # Because lstlisting doesn't know oCaml (and we love oCaml don't we
-            # ?)
-            option = 'Caml'
-        out += r"\lstset{language=" + option + "}\n"
-    out += "\\begin{lstlisting}\n"
-    out += code  # the code is not modified
-    out += "\n\\end{lstlisting}"
+    if argv['minted']:
+        minted = argv['minted']
+        if minted in ('rand', 'random'):
+            minted = random.choice(list(get_all_styles()))
+            print(minted)
+        if 'fruity' in minted or 'vim' in minted or 'native' in minted or 'monokai' in minted:
+            out += "\\begin{tcblisting}{listing only,colback=dark_bg,listing engine=minted,minted style=" + minted + ",minted options={breaklines},minted language=" + option + "}\n"
+        else:
+            out += "\\begin{tcblisting}{listing only,listing engine=minted,minted style=" + minted + ",minted options={breaklines},minted language=" + option + "}\n"
+        out += code  # the code is not modified
+        out += "\n\\end{tcblisting}"
+    else:
+        if option != '':
+            if option.lower() == 'ocaml':
+                # Because lstlisting doesn't know oCaml (and we love oCaml don't we ?)
+                option = 'Caml'
+            out += r"\lstset{language=" + option + "}\n"
+            out += "\\begin{lstlisting}\n"
+        out += code  # the code is not modified
+        out += "\n\\end{lstlisting}"
+    
+
     if non_breaking:
         out += "\n\\end{minipage}\n"
     return out
@@ -40,7 +55,7 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
 
 def tree_parse(matchObj, argv):
     if "nTREE" in matchObj.group(0):
-        return ntree_parse(matchObj, argv)       # to parsed multiple trees
+        return ntree_parse(matchObj, argv)        # to parsed multiple trees
     else:
         return binary_tree_parse(matchObj, argv)  # to parse binary trees
 
@@ -81,10 +96,8 @@ def binary_tree_parse(matchObj, argv):
 
 
 def ntree_parse(matchObj, argv):
-    # Possible options :
-    #   - c : center
     # /!\ if you want to use bold or italic etc. in a nTREE
-    #    you must type it in LaTeX, not in MarkdownBG
+    # you must type it in LaTeX, not in MarkdownBG
     tree = matchObj.group('tree')
     out = ''
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
@@ -523,6 +536,7 @@ def main(argv):
                 "[frenchb]{babel}",
                 "[usenames,dvipsnames,svgnames,table]{xcolor}",
                 "[a4paper]{geometry}",
+                "{tcolorbox}",
                 "{amsmath}",
                 "{amssymb}",
                 "{listings}",
@@ -536,6 +550,11 @@ def main(argv):
                 "{tikz}"] + additionnal_packages
 
     for package in packages:
+        if 'tcolorbox' in package and argv['minted']:
+            output.write(r"\usepackage" + package + '\n')
+            output.write("\\tcbuselibrary{minted}\n")
+            output.write("\\definecolor{dark_bg}{RGB}{25,25,25}\n")
+            continue
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
@@ -552,13 +571,16 @@ def main(argv):
     # Syntax highliting
     if '`' in contents:
         # If the document is likely to contain a piece of code
-        output.write(
-            r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},"
-            " stringstyle=\color{Green}, commentstyle=\color{Gray}, "
-            "identifierstyle=\color{NavyBlue}, numberstyle=\color{Gray},"
-            " numbers=left, breaklines=true,breakatwhitespace=true,"
-            " breakautoindent=true,breakindent=5pt,"
-            "showstringspaces=false, tabsize=4}\n")
+        if argv['minted']:
+            output.write("\\usemintedstyle{" + argv['minted'] + "}\n")
+        else:
+            output.write(
+                r"\lstset{basicstyle=\ttfamily,keywordstyle=\color{RedViolet},"
+                " stringstyle=\color{Green}, commentstyle=\color{Gray}, "
+                "identifierstyle=\color{NavyBlue}, numberstyle=\color{Gray},"
+                " numbers=left, breaklines=true,breakatwhitespace=true,"
+                " breakautoindent=true,breakindent=5pt,"
+                "showstringspaces=false, tabsize=4}\n")
 
     # Presentation
     if argv['title']:
