@@ -72,6 +72,7 @@ def argparse_use():
                               action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
                               help="Display the table of Contents. (default=True)", default=True)
+    latexOptions.add_argument('--minted', help="Minted style, if minted is the wanted syntax engine. (default=normal)", default=False)
 
     return parser
 
@@ -102,6 +103,8 @@ if __name__ == '__main__':
 
     print("Output : ", args.output)
 
+    print('minted : ',args.minted)
+
     argv = {
         'input': args.input,
         'output': args.output,
@@ -112,6 +115,7 @@ if __name__ == '__main__':
         'title': args.title,
         'roboto': args.roboto,
         'packages': args.packages,
+        'minted': args.minted
     }
     # Useful for debugging
     # print(argv)
