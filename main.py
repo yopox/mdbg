@@ -1,7 +1,10 @@
+"""Little tool to convert everything to cool mdbg documents and vice versa.
+
+Little tool to convert everything (or as anything as we can do)
+to cool mdbg documents (or other things).
+Written by Hadrien, pierrotdu18, and YoPox
+"""
 # -*- coding: utf-8 -*-
-# Little tool to convert everything (or as anything as we can do)
-# to cool mdbg documents (or other things).
-# Written by Hadrien, pierrotdu18, and YoPox
 
 # WARNING :
 # No convert functions should be implemented here.
@@ -30,6 +33,7 @@ For more information, see https://github.com/YoPox/mdbg .
 
 
 def argparse_use():
+    """Function that configure the argument parser used later in the programm execution."""
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
 
     parser.add_argument('input', type=argparse.FileType('r'),
@@ -41,10 +45,11 @@ def argparse_use():
 
     formatInOut = parser.add_argument_group(
         title="Syntax Options",
-        description="Input options begin with a lowercase, output options begin with an uppercase.")
+        description="Input options begin with a lowercase, output options begin with an uppercase. "
+        "Default : -mdbg -Tex")
 
-    formatIn = formatInOut.add_mutually_exclusive_group(required=True)
-    formatOut = formatInOut.add_mutually_exclusive_group(required=True)
+    formatIn = formatInOut.add_mutually_exclusive_group()
+    formatOut = formatInOut.add_mutually_exclusive_group()
 
     formatIn.add_argument('-md', action="store_true",
                           help="Indicate that the input Syntax is markdown.")
@@ -63,47 +68,66 @@ def argparse_use():
     latexOptions.add_argument('--date', help="Date")
     latexOptions.add_argument('--author', help="Author(s) of the document")
     latexOptions.add_argument(
-        '--packages', help="list of additionnal packages with the"
-        " following syntax {[options1]{package1},[options2]{package2},...}"
-        "(none by default)")
+        '--packages', help="list of additionnal packages with the following syntax "
+        "{[options1]{package1},[options2]{package2},...} (none by default)")
     latexOptions.add_argument('--documentclass', help='class of the document',
                               default='article')
     latexOptions.add_argument('--roboto', help="Use robotoMono font.",
                               action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
                               help="Display the table of Contents. (default=True)", default=True)
-    latexOptions.add_argument('--minted', help="Minted style, if minted is the wanted syntax engine. (default=normal)", default=False)
+    latexOptions.add_argument(
+        '--minted', default=False,
+        help="Minted style, if minted is the wanted syntax engine. (default=normal) "
+        "If pygments are not installed, the option will be ignored. To deactivate this behaviour, "
+        "call --minted F-STYLE"
+    )
 
     return parser
 
 
-# MAIN
-
-
-if __name__ == '__main__':
-    args = argparse_use().parse_args()
-    inp = args.input.name
-
-    print("Input : ", inp)
-
+def output_treatment(args):
+    """Function to analyse the output."""
     if not args.output:
-        ext = 'txt'
-        if args.Tex:
-            ext = 'tex'
-        elif args.Html:
+        ext = 'tex'
+        if args.Html:
             ext = 'html'
         elif args.Mdbg:
             ext = 'mdbg'
-        if inp[-2:] == 'md':
-            args.output = inp[:-2] + ext
-        elif inp[-4:] == 'mdbg':
-            args.output = inp[:-4] + ext
+        if args.input.name[-2:] == 'md':
+            args.output = args.input.name[:-2] + ext
+        elif args.input.name[-4:] == 'mdbg':
+            args.output = args.input.name[:-4] + ext
         else:
-            args.output = inp + "." + ext
+            args.output = args.input.name + "." + ext
+    return args
 
+
+def minted_treatment(args):
+    """Function to analyse the minted option.
+
+    If pygments are not installed, the option is diactivated.
+    Otherwise, anything goes on normally.
+    """
+    if not mdbg2tex.PYGMENTS_AVAILABLE:
+        args.minted = False
+        print('Hum, --minted ignored, you need Pygments installed, see the help or the doc.')
+    return args
+
+
+# MAIN
+if __name__ == '__main__':
+    arg_parser = argparse_use()
+    args = arg_parser.parse_args()
+
+    print("Input : ", args.input.name)
+
+    args = output_treatment(args)
     print("Output : ", args.output)
 
-    print('minted : ',args.minted)
+    if args.minted:
+        args = minted_treatment(args)
+    # print('minted : ', args.minted)
 
     argv = {
         'input': args.input,
@@ -115,7 +139,9 @@ if __name__ == '__main__':
         'title': args.title,
         'roboto': args.roboto,
         'packages': args.packages,
-        'minted': args.minted
+        'minted': args.minted,
+        'print_help': arg_parser.print_help,
+        'print_usage': arg_parser.print_usage,
     }
     # Useful for debugging
     # print(argv)
@@ -130,6 +156,6 @@ if __name__ == '__main__':
     if args.mdbg:
         if args.Html:
             mdbg2html.main(argv)
-        elif args.Tex:
+        else:  # default option : -Tex
             mdbg2tex.main(argv)
         # if args.Mdbg: Cas chelou que je traiterai plus tard.

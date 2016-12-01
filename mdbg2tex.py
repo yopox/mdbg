@@ -1,21 +1,28 @@
-# -*- coding: utf-8 -*-
-# Little tool to convert Markdown to cool LaTeX documents.
-# Written by YoPox, Hadrien and pierrotdu18
+"""Little tool to convert Markdown to cool LaTeX documents.
+
+Written by YoPox, Hadrien and pierrotdu18
+"""
 
 # Import
 import re
-import sys
 import random
-from pygments.styles import get_all_styles
-
+try:
+    from pygments.styles import get_all_styles
+except ImportError:
+    PYGMENTS_AVAILABLE = False
+else:
+    PYGMENTS_AVAILABLE = True
 # Parsing functions
 
 # Block parsing
 
 
-def block_code_parse(matchObj, argv):  # to parse blocks of code
-    # Option syntax : "java" if wanted language is java, and "nb-java" if
-    # wanted language is java AND non breaking is wanted
+def block_code_parse(matchObj, argv):
+    """To parse blocks of code.
+
+    Option syntax : "java" if wanted language is java, and "nb-java" if
+    wanted language is java AND non breaking is wanted
+    """
     code = matchObj.group('code')
     __option = matchObj.group('option')
     # we remove 'nb-' if it's in the option
@@ -28,13 +35,16 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
         out += "\\begin{minipage}{\\linewidth}\n"
     if argv['minted']:
         minted = argv['minted']
-        if minted in ('rand', 'random'):
+        if minted in ('rand', 'random') and PYGMENTS_AVAILABLE:
             minted = random.choice(list(get_all_styles()))
             print(minted)
         if 'fruity' in minted or 'vim' in minted or 'native' in minted or 'monokai' in minted:
-            out += "\\begin{tcblisting}{listing only,colback=dark_bg,listing engine=minted,minted style=" + minted + ",minted options={breaklines},minted language=" + option + "}\n"
+            out += "\\begin{tcblisting}{listing only,colback=dark_bg,listing engine=minted,"
+            out += "minted style=" + minted + ",minted options={breaklines},"
+            out += "minted language=" + option + "}\n"
         else:
-            out += "\\begin{tcblisting}{listing only,listing engine=minted,minted style=" + minted + ",minted options={breaklines},minted language=" + option + "}\n"
+            out += "\\begin{tcblisting}{listing only,listing engine=minted,minted style=" + \
+                minted + ",minted options={breaklines},minted language=" + option + "}\n"
         out += code  # the code is not modified
         out += "\n\\end{tcblisting}"
     else:
@@ -46,7 +56,6 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
             out += "\\begin{lstlisting}\n"
         out += code  # the code is not modified
         out += "\n\\end{lstlisting}"
-    
 
     if non_breaking:
         out += "\n\\end{minipage}\n"
@@ -54,6 +63,7 @@ def block_code_parse(matchObj, argv):  # to parse blocks of code
 
 
 def tree_parse(matchObj, argv):
+    """To parse trees."""
     if "nTREE" in matchObj.group(0):
         return ntree_parse(matchObj, argv)        # to parsed multiple trees
     else:
@@ -61,7 +71,10 @@ def tree_parse(matchObj, argv):
 
 
 def binary_tree_parse(matchObj, argv):
-    # nodes contains every couple like 'L 42' (see readme.md for the syntax)
+    """To parse binary trees.
+
+    nodes contains every couple like 'L 42' (see readme.md for the syntax)
+    """
     nodes = [list(x) for x in re.findall(
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
@@ -96,8 +109,11 @@ def binary_tree_parse(matchObj, argv):
 
 
 def ntree_parse(matchObj, argv):
-    # /!\ if you want to use bold or italic etc. in a nTREE
-    # you must type it in LaTeX, not in MarkdownBG
+    r"""To parse general trees.
+
+    /!\ if you want to use bold or italic etc. in a nTREE
+    you must type it in LaTeX, not in MarkdownBG
+    """
     tree = matchObj.group('tree')
     out = ''
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
@@ -108,8 +124,10 @@ def ntree_parse(matchObj, argv):
 
 
 def graph_parse(matchObj, argv):
-    # We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for
-    # more information
+    """To parse graphs.
+
+    We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information
+    """
     option = matchObj.group('option')
     option = option if option is not None else ''
     graph = matchObj.group('graph')
@@ -122,6 +140,7 @@ def graph_parse(matchObj, argv):
 
 
 def quote_parse(matchObj, argv):
+    """To parse quoted text."""
     quotes = matchObj.group('quote')
     quotes = [x for x in re.split(r"(?:^|\n)> (.*)", quotes) if x != '' and x != '\n']
     out = "\n\\medskip\n\\begin{displayquote}\n"  # we use 'csquote' package
@@ -133,6 +152,7 @@ def quote_parse(matchObj, argv):
 
 
 def itemize_parse(matchObj, argv):
+    """To parse simple lists."""
     itemize = matchObj.group(0)
     # we remove left indentation
     itemize = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", itemize)
@@ -151,6 +171,7 @@ def itemize_parse(matchObj, argv):
 
 
 def enumerate_parse(matchObj, argv):
+    """To parse numbered lists."""
     enum = matchObj.group(0)
     # we remove left indentation
     enum = re.sub(r"(?:^|(?<=\n))(?:    |\t)(?P<item>.*)", r"\g<item>", enum)
@@ -169,6 +190,7 @@ def enumerate_parse(matchObj, argv):
 
 
 def table_parse(matchObj, argv):
+    """To parse tables."""
     option = matchObj.group('option')
     table = matchObj.group('table')
 
@@ -213,6 +235,7 @@ def table_parse(matchObj, argv):
 
 
 def title_parse(matchObj, argv):
+    """To parse titles."""
     titles = {
         'article': [r"\part", r"\section", r"\subsection", r"\subsubsection", r"\paragraph",
                     r"\subparagraph", r'\subsubparagraph'],
@@ -233,7 +256,8 @@ def title_parse(matchObj, argv):
     return out
 
 
-def block_parse(block, argv):  # main parsing function
+def block_parse(block, argv):
+    """Main parsing function."""
     if re.sub(r'\n', '', block) == '':
         # if the block isn't very interresting we return it directly
         return block
@@ -346,6 +370,7 @@ def block_parse(block, argv):  # main parsing function
 
 
 def inline_parse(line, argv):
+    """To parse inline elements."""
     if re.sub(r'\n', '', line) == '':
         return line
 
@@ -506,7 +531,7 @@ def inline_parse(line, argv):
 
 
 def main(argv):
-
+    """Main function."""
     # Preparing output file
     output = open(argv['output'], 'w')
     output.seek(0)
@@ -527,7 +552,7 @@ def main(argv):
         temp = argv['packages']
         if temp[0] != '{' or temp[-1] != '}':
             # If the user doesn't know how argument -p works...
-            print(doc)
+            argv['print_help']()
             return -1
         else:
             temp = temp[1:-1]
