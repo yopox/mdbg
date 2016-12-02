@@ -33,9 +33,9 @@ def block_code_parse(matchObj, argv):
     if non_breaking:
         # Putting the code in a minipage will prevent from page breaking
         out += "\\begin{minipage}{\\linewidth}\n"
-    if argv['minted']:
+    if argv['minted'] and PYGMENTS_AVAILABLE:
         minted = argv['minted']
-        if minted in ('rand', 'random') and PYGMENTS_AVAILABLE:
+        if minted in ('rand', 'random'):
             minted = random.choice(list(get_all_styles()))
             print(minted)
         if 'fruity' in minted or 'vim' in minted or 'native' in minted or 'monokai' in minted:
@@ -54,8 +54,8 @@ def block_code_parse(matchObj, argv):
                 option = 'Caml'
             out += r"\lstset{language=" + option + "}\n"
             out += "\\begin{lstlisting}\n"
-        out += code  # the code is not modified
-        out += "\n\\end{lstlisting}"
+            out += code  # the code is not modified
+            out += "\n\\end{lstlisting}"
 
     if non_breaking:
         out += "\n\\end{minipage}\n"
@@ -578,7 +578,7 @@ def main(argv):
         if 'tcolorbox' in package and argv['minted']:
             output.write(r"\usepackage" + package + '\n')
             output.write("\\tcbuselibrary{minted}\n")
-            output.write("\\definecolor{dark_bg}{RGB}{25,25,25}\n")
+            output.write("\\definecolor{dark_bg}{RGB}{38, 50, 56}\n")
             continue
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
