@@ -12,6 +12,7 @@ except ImportError:
     PYGMENTS_AVAILABLE = False
 else:
     PYGMENTS_AVAILABLE = True
+
 # Parsing functions
 
 # Block parsing
@@ -81,9 +82,9 @@ def binary_tree_parse(matchObj, argv):
     out = ''
     out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
     out += "\n\\graph[binary tree layout, fresh nodes]{\n"
-    # The package used to draw trees is TikZ and that requiers LuaLaTeX
-    # to compile (the algorithm aiming at computing distance
-    # between elements of the graphs is written in Lua)
+    # The package used to draw trees is TikZ and that requires LuaLaTeX
+    # to compile (the algorithm that computes distance
+    # between elements is written in Lua)
     # The traversal is a pre-order traversal
     # If you don't understand that code you should go to math spé in Lycée
     # Henri IV and ask E. T.
@@ -126,7 +127,7 @@ def ntree_parse(matchObj, argv):
 def graph_parse(matchObj, argv):
     """To parse graphs.
 
-    We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information
+    We use TikZ 'graph drawing' and 'graphs' libraries, see pgfmanual for more information.
     """
     option = matchObj.group('option')
     option = option if option is not None else ''
@@ -565,6 +566,7 @@ def main(argv):
                 "{amsmath}",
                 "{amssymb}",
                 "{listings}",
+                "{shellesc}",
                 "{enumerate}",
                 "{xltxtra}",
                 "{soul}",
@@ -642,5 +644,3 @@ def main(argv):
 
     inputFile.close()
     output.close()
-
-    print("LaTeX output file written in :", argv['output'])

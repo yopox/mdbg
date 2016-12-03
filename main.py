@@ -33,14 +33,14 @@ For more information, see https://github.com/YoPox/mdbg .
 
 
 def argparse_use():
-    """Function that configure the argument parser used later in the programm execution."""
+    """Function that configure the argument parser used later in the program execution."""
     parser = argparse.ArgumentParser(description=description, epilog=epilog)
 
     parser.add_argument('input', type=argparse.FileType('r'),
                         help="File in input.")
 
     parser.add_argument(
-        '--output', '-o', help="Output file. If not specified, mdbg will wrot it in input.format"
+        '--output', '-o', help="Output file. If not specified, mdbg will wrote it in input.format"
         "where input is the name of the input file (whithout its extention mdbg recognises it).")
 
     formatInOut = parser.add_argument_group(
@@ -52,21 +52,21 @@ def argparse_use():
     formatOut = formatInOut.add_mutually_exclusive_group()
 
     formatIn.add_argument('-md', action="store_true",
-                          help="Indicate that the input Syntax is markdown.")
+                          help="Indicate that the input syntax is markdown.")
     formatIn.add_argument('-mdbg', action="store_true",
-                          help="Indicate that the input Syntax is mdbg.")
+                          help="Indicate that the input syntax is mdbg.")
 
     formatOut.add_argument('-Tex', action="store_true",
-                           help="Indicate that the output Syntax is LaTeX.")
+                           help="Indicate that the output syntax is LaTeX.")
     formatOut.add_argument('-Mdbg', action="store_true",
-                           help="Indicate that the output Syntax is mdbg.")
+                           help="Indicate that the output syntax is mdbg.")
     formatOut.add_argument('-Html', action="store_true",
-                           help="Indicate that the output Syntax is HTML.")
+                           help="Indicate that the output syntax is HTML.")
 
     latexOptions = parser.add_argument_group(title="LaTeX options")
-    latexOptions.add_argument('--title', help="Title of the document")
+    latexOptions.add_argument('--title', help="Title")
     latexOptions.add_argument('--date', help="Date")
-    latexOptions.add_argument('--author', help="Author(s) of the document")
+    latexOptions.add_argument('--author', help="Author(s)")
     latexOptions.add_argument(
         '--packages', help="list of additionnal packages with the following syntax "
         "{[options1]{package1},[options2]{package2},...} (none by default)")
@@ -75,11 +75,11 @@ def argparse_use():
     latexOptions.add_argument('--roboto', help="Use robotoMono font.",
                               action="store_true")
     latexOptions.add_argument('--tableofcontents', action="store_false",
-                              help="Display the table of Contents. (default=True)", default=True)
+                              help="Display the table of contents. (default=True)", default=True)
     latexOptions.add_argument(
         '--minted', default=False,
         help="Minted style, if minted is the wanted syntax engine. (default=normal) "
-        "If pygments are not installed, the option will be ignored. To deactivate this behaviour, "
+        "If pygments is not installed, the option will be ignored. To deactivate this behaviour, "
         "call --minted F-STYLE"
     )
 
@@ -106,7 +106,7 @@ def output_treatment(args):
 def minted_treatment(args):
     """Function to analyse the minted option.
 
-    If pygments are not installed, the option is diactivated.
+    If pygments is not installed, the option is disactivated.
     Otherwise, anything goes on normally.
     """
     if not mdbg2tex.PYGMENTS_AVAILABLE:
@@ -122,12 +122,12 @@ if __name__ == '__main__':
 
     print("Input : ", args.input.name)
 
-    args = output_treatment(args)
-    print("Output : ", args.output)
-
     if args.minted:
         args = minted_treatment(args)
-    # print('minted : ', args.minted)
+    print('minted : ', args.minted)
+
+    args = output_treatment(args)
+    print("Output : ", args.output)
 
     argv = {
         'input': args.input,
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         'print_usage': arg_parser.print_usage,
     }
     # Useful for debugging
-    # print(argv)
+    print(argv)
 
     if args.md:
         argv2 = dict(argv)
