@@ -144,7 +144,7 @@ if __name__ == '__main__':
         'print_usage': arg_parser.print_usage,
     }
     # Useful for debugging
-    print(argv)
+    # print(argv)
 
     if args.md:
         argv2 = dict(argv)

@@ -80,7 +80,7 @@ def binary_tree_parse(matchObj, argv):
         r'([A-Z]) "([^"]*?)"', matchObj.group('tree'))]
     l = len(nodes)
     out = ''
-    out += "\n\\begin{tikzpicture}[nodes={circle, draw}]"
+    out += "\n\\medskip\n\\begin{tikzpicture}[nodes={circle, draw}]"
     out += "\n\\graph[binary tree layout, fresh nodes]{\n"
     # The package used to draw trees is TikZ and that requires LuaLaTeX
     # to compile (the algorithm that computes distance
@@ -105,7 +105,7 @@ def binary_tree_parse(matchObj, argv):
         else:
             return re.sub(r"\n ?\n", r"\n", ans) + "};\n"
 
-    out += get_tree(argv) + "\\end{tikzpicture}\n"
+    out += get_tree(argv) + "\\end{tikzpicture}\n\\medskip\n"
     return out
 
 
@@ -132,11 +132,11 @@ def graph_parse(matchObj, argv):
     option = matchObj.group('option')
     option = option if option is not None else ''
     graph = matchObj.group('graph')
-    out = "\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em,"
+    out = "\n\\medskip\n\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em,"
     out += "draw=black!20, thick, fill=white, font=\\footnotesize, minimum "
     out += "width=0.53cm},>=stealth, rounded corners, semithick]\n\\graph [level "
     out += "distance=1cm, sibling sep=.5em, sibling distance=1cm,"
-    out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n'
+    out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n\\medskip\n'
     return out
 
 
@@ -325,7 +325,7 @@ def block_parse(block, argv):
         'quotation':    lambda x: quote_parse(x, argv),
         'tree':         lambda x: tree_parse(x, argv),
         'graph':        lambda x: graph_parse(x, argv),
-        'center':       "\\begin{center}\n\g<inside>\n\\end{document}"
+        'center':       r"\\begin{center}\n\g<inside>\n\\end{center}"
     }
 
     n = len(block)
@@ -574,7 +574,7 @@ def main(argv):
                 "{dirtytalk}",
                 "{hyperref}",
                 "[official]{eurosym}",
-                "{tikz}"] + additionnal_packages
+                "{tikz, pgfplots}"] + additionnal_packages
 
     for package in packages:
         if 'tcolorbox' in package and argv['minted']:
@@ -585,7 +585,7 @@ def main(argv):
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
-            output.write("\\usetikzlibrary{graphs, graphdrawing, arrows.meta}\n"
+            output.write("\\usetikzlibrary{graphs, graphdrawing, graphs.standard, quotes, arrows.meta}\n"
                          "\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
