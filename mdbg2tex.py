@@ -93,7 +93,7 @@ def binary_tree_parse(matchObj, argv):
         def aux(i, depth):
             if nodes[i][0] == 'L':
                 f = nodes[i][1]
-                return ('"' + (block_parse(f, argv) if f != '()' else '') + '"', i + 1)
+                return (('"' + block_parse(f, argv) + '"') if f != '()' else '', i + 1)
             else:
                 (g, r1) = aux(i + 1, depth + 1)
                 (d, r2) = aux(r1, depth + 1)
