@@ -132,10 +132,10 @@ def graph_parse(matchObj, argv):
     option = matchObj.group('option')
     option = option if option is not None else ''
     graph = matchObj.group('graph')
-    out = "\n\\medskip\n\\begin{tikzpicture}\n[nodes={text height=.7em, text depth=.2em,"
-    out += "draw=black!20, thick, fill=white, font=\\footnotesize, minimum "
-    out += "width=0.53cm},>=stealth, rounded corners, semithick]\n\\graph [level "
-    out += "distance=1cm, sibling sep=.5em, sibling distance=1cm,"
+    out =  "\n\\medskip\n\\begin{tikzpicture}\n[>=stealth, rounded corners, semithick]\n"
+    out += "\\graph[nodes={text height=.7em, text depth=.2em,draw=black!20, thick, "
+    out += "fill=white, font=\\footnotesize, minimum width=0.53cm}, level distance=1cm, "
+    out += "sibling sep=.5em, sibling distance=1cm,"
     out += option + "]\n" + '{' + graph + '};\n\\end{tikzpicture}\n\\medskip\n'
     return out
 
