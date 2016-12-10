@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Mdbg by YoPox</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Mdbg</h1>
+        <h2>New syntax based on markdown</h2>
+        <a href="https://github.com/YoPox/mdbg" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="bg-flavoured-markdown" class="anchor" href="#bg-flavoured-markdown" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>BG-flavoured markdown</h1>
+
+<p>Mardown BG (<em>.mdbg</em>) is an improvement of the existing <a href="https://fr.wikipedia.org/wiki/Markdown">Mardown</a> language.</p>
+
+<p>It provides nice features which make it possible to generate a fresh, correct and nice <em>.tex</em> document.</p>
+
+<h1>
+<a id="syntax" class="anchor" href="#syntax" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Syntax</h1>
+
+<h2>
+<a id="markdown-flavoured" class="anchor" href="#markdown-flavoured" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Markdown-flavoured</h2>
+
+<h3>
+<a id="headers" class="anchor" href="#headers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Headers</h3>
+
+<p>Like in markdown.</p>
+
+<pre lang="mdbg"><code># H1
+## H2
+### H3
+#### H4
+##### H5
+###### H6
+</code></pre>
+
+<h4>
+<a id="non-numbered-sections" class="anchor" href="#non-numbered-sections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Non numbered sections</h4>
+
+<p>For non enumerated sections :</p>
+
+<pre lang="mdbg"><code>#* H1
+##* H2
+###* H3
+####* H4
+#####* H5
+######* H6
+</code></pre>
+
+<h3>
+<a id="emphasis" class="anchor" href="#emphasis" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Emphasis</h3>
+
+<p>Translations :</p>
+
+<h4>
+<a id="bold" class="anchor" href="#bold" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Bold</h4>
+
+<p>In markdown :</p>
+
+<div class="highlight highlight-source-lisp"><pre><span class="pl-smi">**bold**</span> <span class="pl-k">or</span> __bold__</pre></div>
+
+<p>In mdbg :</p>
+
+<pre lang="mdbg"><code>*bold*
+</code></pre>
+
+<h4>
+<a id="underline" class="anchor" href="#underline" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Underline</h4>
+
+<pre lang="mdbg"><code>_underline_
+</code></pre>
+
+<h4>
+<a id="italic" class="anchor" href="#italic" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Italic</h4>
+
+<p>In markdown :</p>
+
+<div class="highlight highlight-source-lisp"><pre>_italic_ <span class="pl-k">or</span> <span class="pl-smi">*italic*</span></pre></div>
+
+<p>In mdbg :</p>
+
+<pre lang="mdbg"><code>%italic%
+</code></pre>
+
+<h4>
+<a id="strikethrough" class="anchor" href="#strikethrough" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Strikethrough</h4>
+
+<p>In markdown :</p>
+
+<div class="highlight highlight-source-lisp"><pre>~~strikethrough~~</pre></div>
+
+<p>In mdbg :</p>
+
+<pre lang="mdbg"><code>~strikethrough~
+</code></pre>
+
+<h3>
+<a id="lists" class="anchor" href="#lists" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lists</h3>
+
+<p>Small changes have been made.</p>
+
+<p>This is a list in mdbg :</p>
+
+<pre lang="mdbg"><code>Neutral text :
+    - first item
+    - second item
+        - first second item
+        - second second item
+    - third item
+</code></pre>
+
+<p>and an enumerated list :</p>
+
+<pre lang="mdbg"><code>    1. first item
+    2. second item
+        1. first second item
+        2. second second item
+    3. third item
+</code></pre>
+
+<p>The indentations can be four spaces or a tabulation but each item has to be idented.</p>
+
+<h3>
+<a id="links" class="anchor" href="#links" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Links</h3>
+
+<pre lang="mdbg"><code>[text for link](https://www.google.com)
+
+[text for link](https://www.google.com "title for link")
+</code></pre>
+
+<h3>
+<a id="code" class="anchor" href="#code" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Code</h3>
+
+<p>Like in Markdown.</p>
+
+<h3>
+<a id="tables" class="anchor" href="#tables" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tables</h3>
+
+<p>Like Markdown, without the 2nd line.</p>
+
+<p>In mdbg :</p>
+
+<pre lang="mdbg"><code>| C11 | C21 | C31 |
+| C21 | C22 | C32 |
+| C31 | C32 | C33 |
+</code></pre>
+
+<p>Whereas in Markdown :</p>
+
+<div class="highlight highlight-source-lisp"><pre>| C11 | C21 | C31 |
+| --- | --- | --- |
+| C21 | C22 | C32 |
+| C31 | C32 | C33 |</pre></div>
+
+<p>You can't chose text alignment for every cell but you can chose it for every row by adding the command <code>!!tab</code> followed by the alignments.</p>
+
+<p>For example one possible table would be :</p>
+
+<pre lang="mdbg"><code>!!tab r c l
+| C11 | C21 | C31 |
+| C21 | C22 | C32 |
+| C31 | C32 | C33 |
+</code></pre>
+
+<h2>
+<a id="new-" class="anchor" href="#new-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>New !</h2>
+
+<h3>
+<a id="trees" class="anchor" href="#trees" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Trees</h3>
+
+<h4>
+<a id="basic-binary-tree" class="anchor" href="#basic-binary-tree" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic binary tree</h4>
+
+<p>Description :</p>
+
+<ul>
+<li>Command : <code>![TREE]!</code>
+</li>
+<li>Root : <code>R "text"</code>
+</li>
+<li>Node : <code>N "text"</code>
+</li>
+<li>Leaf : <code>L "text"</code>
+</li>
+</ul>
+
+<pre lang="mdbg"><code>![TREE R "root" N "a node" L "a leaf" L "an other leaf" N "an other node" L "a leaf again !" N "a node again !" L  "OneWord" L "the last leaf"]!
+</code></pre>
+
+<p>If you want to draw an non strictly binary tree, you can write <code>L ()</code> for an empty leaf</p>
+
+<h4>
+<a id="non-binary-trees" class="anchor" href="#non-binary-trees" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Non binary trees</h4>
+
+<p>Command : <code>![nTREE]!</code></p>
+
+<pre lang="mdbg"><code>![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
+</code></pre>
+
+<h3>
+<a id="graphs" class="anchor" href="#graphs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Graphs</h3>
+
+<p>You can draw graphs with a very simple syntax (the same as nTREE syntax).</p>
+
+<p>This is made possible thanks to <em>TikZ</em> fantastic <code>graphs</code> and <code>graphdrawing</code> packages, with some of their libraries.</p>
+
+<p>Command : <code>![GRAPH .............!]</code></p>
+
+<p>With a possible <code>!!option</code> before <code>![GRAPH...</code> line.</p>
+
+<p>This <code>option</code> will be translated to <code>\graph[&lt;option&gt;]...</code> in <em>LaTeX</em>.</p>
+
+<p>See pgfmanual for more information about the syntax.</p>
+
+<p>You can also base your graph on the example given in the section <strong>Examples</strong></p>
+
+<h3>
+<a id="new-text-features" class="anchor" href="#new-text-features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>New text features</h3>
+
+<h4>
+<a id="superscript" class="anchor" href="#superscript" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Superscript</h4>
+
+<p>You can use text in superscript :</p>
+
+<pre lang="mdbg"><code>We live in Paris, in the 5^{th}
+</code></pre>
+
+<h4>
+<a id="subscript" class="anchor" href="#subscript" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Subscript</h4>
+
+<p>You can use text in subscript :</p>
+
+<pre lang="mdbg"><code>This is a normal text_{this one is subscripted}
+</code></pre>
+
+<h4>
+<a id="footnotes" class="anchor" href="#footnotes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Footnotes</h4>
+
+<p>This is how to use footnotes :</p>
+
+<pre lang="mdbg"><code>I never work ***{almost}
+</code></pre>
+
+<h4>
+<a id="colored-texts" class="anchor" href="#colored-texts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Colored texts</h4>
+
+<p>How to use colored texts :</p>
+
+<pre lang="mdbg"><code>I love {red}[red] and {green}[blue witten in green] !
+</code></pre>
+
+<p>A list of all possible colors is given at the end of this readme.</p>
+
+<h3>
+<a id="center-environnement" class="anchor" href="#center-environnement" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Center environnement</h3>
+
+<p>You can center some text or some figure with this :</p>
+
+<pre lang="mdbg"><code>(((
+...
+)))
+</code></pre>
+
+<h3>
+<a id="miscellaneous" class="anchor" href="#miscellaneous" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Miscellaneous</h3>
+
+<p>Add a <code>!</code> at the begining of a line to have a <code>\noindent</code> before this line in the <em>LaTeX</em> generated file.</p>
+
+<p>Add a <code>/</code> at the end of a line to have a line break.</p>
+
+<h1>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h1>
+
+<h2>
+<a id="trees-1" class="anchor" href="#trees-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Trees</h2>
+
+<p>The command <code>![TREE R 1 N 2 F 3 F 4 F 5]!</code> produces the following result in LaTeX :</p>
+
+<p><img src="http://www.mirari.fr/ShRU" alt="Binary tree"></p>
+
+<p>the command <code>![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}, F, G -- M}]!</code> produces the following result in LaTeX :</p>
+
+<p><img src="http://www.mirari.fr/fi6Z" alt="Multiple tree"></p>
+
+<h2>
+<a id="code-1" class="anchor" href="#code-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Code</h2>
+
+<p>Those lines :</p>
+
+<div class="highlight highlight-source-lisp"><pre>```ocaml
+<span class="pl-k">let</span> fg i = <span class="pl-c1">2</span> * i + <span class="pl-c1">1</span><span class="pl-c">;;</span>
+<span class="pl-k">let</span> fd i = <span class="pl-c1">2</span> * i + <span class="pl-c1">2</span><span class="pl-c">;;</span>
+
+<span class="pl-k">let</span> rec heapify a n i = match fg i, fd i with
+    | g, d <span class="pl-k">when</span> g &gt; n -&gt; ()
+    | g, d <span class="pl-k">when</span> d &gt; n -&gt; <span class="pl-k">if</span> a.(i) &lt; a.(g) then swap a i g
+    | g, d -&gt; <span class="pl-k">if</span> a.(i) &lt; a.(g) || a.(i) &lt; a.(d) then begin <span class="pl-k">let</span> k = <span class="pl-k">if</span> a.(g) &gt; a.(d) then g <span class="pl-k">else</span> d in swap a i k<span class="pl-c">; heapify a n k end;;</span>
+
+<span class="pl-k">let</span> heap_sort a = <span class="pl-k">let</span> n = ref (vect_length a - <span class="pl-c1">1</span>) in
+    for k = !n downto <span class="pl-c1">0</span> <span class="pl-k">do</span>
+        heapify a !n k
+    done<span class="pl-c">;</span>
+    while !n &lt;&gt; <span class="pl-c1">0</span> <span class="pl-k">do</span>
+        swap a <span class="pl-c1">0</span> !n<span class="pl-c">;</span>
+        decr n<span class="pl-c">;</span>
+        heapify a !n <span class="pl-c1">0</span>
+    done<span class="pl-c">;;</span>
+``` </pre></div>
+
+<p>Will produce this :</p>
+
+<p><img src="http://www.mirari.fr/ogMn" alt="Some code in ocaml"></p>
+
+<h2>
+<a id="graphs-1" class="anchor" href="#graphs-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Graphs</h2>
+
+<pre lang="mdbg"><code>!!layered layout
+![GRAPH "5th Edition" -&gt; { "6th Edition", "PWB 1.0" };
+"6th Edition" -&gt; { "LSX", "1 BSD", "Mini Unix", "Wollongong", "Interdata" };
+"Interdata" -&gt; { "Unix/TS 3.0", "PWB 2.0", "7th Edition" };
+"7th Edition" -&gt; { "8th Edition", "32V", "V7M", "Ultrix-11", "Xenix", "UniPlus+" };
+"V7M" -&gt; "Ultrix-11";
+"8th Edition" -&gt; "9th Edition";
+"1 BSD" -&gt; "2 BSD" -&gt; "2.8 BSD" -&gt; { "Ultrix-11", "2.9 BSD" };
+"32V" -&gt; "3 BSD" -&gt; "4 BSD" -&gt; "4.1 BSD" -&gt; { "4.2 BSD", "2.8 BSD", "8th Edition" };
+"4.2 BSD" -&gt; { "4.3 BSD", "Ultrix-32" };
+"PWB 1.0" -&gt; { "PWB 1.2" -&gt; "PWB 2.0", "USG 1.0" -&gt; { "CB Unix 1", "USG 2.0" }};
+"CB Unix 1" -&gt; "CB Unix 2" -&gt; "CB Unix 3" -&gt; { "Unix/TS++", "PDP-11 Sys V" };
+{ "USG 2.0" -&gt; "USG 3.0", "PWB 2.0", "Unix/TS 1.0" } -&gt; "Unix/TS 3.0";
+{ "Unix/TS++", "CB Unix 3", "Unix/TS 3.0" } -&gt; "TS 4.0" -&gt; "System V.0" -&gt; "System V.2" -&gt; "System V.3";
+]!
+</code></pre>
+
+<p>Will produce this :</p>
+
+<p><img src="http://www.mirari.fr/EbE6" alt="Graph example"></p>
+
+<h1>
+<a id="comprehensive-list-of-colors" class="anchor" href="#comprehensive-list-of-colors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Comprehensive list of colors</h1>
+
+<p><img src="http://www.mirari.fr/VUmg" alt="Colors"></p>
+
+<h1>
+<a id="pgfmanual" class="anchor" href="#pgfmanual" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>pgfmanual</h1>
+
+<p><a href="http://ftp.oleane.net/pub/CTAN/graphics/pgf/base/doc/pgfmanual.pdf">Here</a> is a link of a recent and accurate version of pgf-tikz manual.</p>
+
+<p>It is used for trees and graphs in Markdown BG.</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/YoPox/mdbg/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/YoPox/mdbg/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/YoPox/mdbg"></a> is maintained by <a href="https://github.com/YoPox">YoPox</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
