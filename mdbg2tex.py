@@ -281,7 +281,7 @@ def block_parse(block, argv):
     # A leaf is a piece of inline text or a block "elementary brick"
 
     keys = ['code', 'comment', 'latex', 'title', 'itemize', 'enumerate', 'table', 'quotation',
-            'tree', 'graph', 'center']
+            'tree', 'graph']
 
     detection_regex = {
         # These regexps detect the blocks and split them correctly
@@ -294,8 +294,7 @@ def block_parse(block, argv):
         'table':     r"((?:!!.*\n)?(?:\|(?:.*?|)+\n)+)",
         'quotation': r"((?:^|(?<=\n))(?:> .*\n?)+)",
         'tree':      r"(!\[n?TREE (?:(?!\]!)(?:.|\n))*\]!)",
-        'graph':     r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)",
-        'center':    r"([(]{3}\n(?:.|\n)*?\n[)]{3})"
+        'graph':     r"((?:!!.*\n)?!\[GRAPH (?:(?!\]!)(?:.|\n))*\]!)"
     }
 
     parse_regex = {
@@ -310,22 +309,20 @@ def block_parse(block, argv):
         'table':     r"(?:!!tab (?P<option>.*?)\n)?(?P<table>(?:\|(?:.*?\|)+\n)+)",
         'quotation': r"(?:^|(?<=\n))(?P<quote>(?:[>] .*\n?)+)",
         'tree':      r"!\[n?TREE (?P<tree>(?:(?!\]!)(?:.|\n))*)\]!",
-        'graph':     r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!",
-        'center':    r"[(]{3}\n(?P<inside>(?:.|\n)*?\n)[)]{3}"
+        'graph':     r"(?:!!(?P<option>.*)\n)?!\[GRAPH (?P<graph>(?:(?!\]!)(?:.|\n))*)\]!"
     }
 
     parse_repl = {
-        'code':         lambda x: block_code_parse(x, argv),
+        'code': lambda x: block_code_parse(x, argv),
         'comment':      r"% \g<comment>",
         'latex':        r"\g<everything>",
-        'title':        lambda x: title_parse(x, argv),
-        'itemize':      lambda x: itemize_parse(x, argv),
-        'enumerate':    lambda x: enumerate_parse(x, argv),
-        'table':        lambda x: table_parse(x, argv),
-        'quotation':    lambda x: quote_parse(x, argv),
-        'tree':         lambda x: tree_parse(x, argv),
-        'graph':        lambda x: graph_parse(x, argv),
-        'center':       r"\\begin{center}\n\g<inside>\n\\end{center}"
+        'title': lambda x: title_parse(x, argv),
+        'itemize': lambda x: itemize_parse(x, argv),
+        'enumerate': lambda x: enumerate_parse(x, argv),
+        'table': lambda x: table_parse(x, argv),
+        'quotation': lambda x: quote_parse(x, argv),
+        'tree': lambda x: tree_parse(x, argv),
+        'graph': lambda x: graph_parse(x, argv)
     }
 
     n = len(block)
@@ -492,19 +489,21 @@ def inline_parse(line, argv):
     # If we arrive here... it is because 'line' is not a cool piece of mdbg,
     # yet, we can do something to it
     supl_regex = [
-        r"^[-\*_]{3,}",                           # horizontal line
-        r"\* \* \*",                              # removing decoration
+        r"^[-\*_]{3,}",                            # horizontal line
+        r"\* \* \*",                               # removing decoration
         r"(?:^|(?<=\n))!(?!\[)(?P<remainder>.*)",  # no indent
-        r"_",                                     # replacing _ by \_
-        r"&",                                     # replacing & by \&
-        r"#",                                     # replacing # by \#
-        r"%",                                     # replacing % by \%
-        r"€",                                     # replacing € by \euro{}
-        r"—",                                     # replacing — by \\textemdash\
+        r"_",                                      # replacing _ by \_
+        r"&",                                      # replacing & by \&
+        r"#",                                      # replacing # by \#
+        r"%",                                      # replacing % by \%
+        r"€",                                      # replacing € by \euro{}
+        r"—",                                      # replacing — by \\textemdash\
         r'\[(?P<text>.*)\]\((?P<link>[^ ]*)( ".*")?\)',     # links
         r"\<(?P<link>https?://[^ ]*)\>",                    # links
         r"[ ]*/(?=\n|$)",                                   # newline
-        r"(?<!\\)LaTeX"                                     # LaTeX
+        r"(?<!\\)LaTeX",                                    # LaTeX
+        r"\(\(\(",                                        # center
+        r"\)\)\)"                                         # center
     ]
     supl_repl = [
         r"\\hrulefill\n",
@@ -519,7 +518,9 @@ def inline_parse(line, argv):
         r"\\href{\g<link>}{\g<text>}",
         r"\\href{\g<link>}{\g<link>}",
         r"\\newline",
-        r"\\LaTeX{}"
+        r"\\LaTeX{}",
+        r"\\begin{center}",
+        r"\\end{center}"
     ]
 
     for i in range(len(supl_regex)):
