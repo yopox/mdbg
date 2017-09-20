@@ -378,7 +378,8 @@ def inline_parse(line, argv):
         1: ['code', 'latex', 'quote1', 'quote2', 'footnote', 'superscript', 'subscript', 'bold',
             'underline', 'italic', 'strike'],
         # Things which take two arguments
-        2: ['color', 'link1', 'link2']
+        # 2: ['color', 'link1', 'link2']
+        2: ['link1', 'link2']
     }
 
     detection_regex = {
@@ -396,7 +397,7 @@ def inline_parse(line, argv):
             'strike':      r"(~(?! )[^~]*~)"
         },
         2:  {
-            'color':       r"(\{[^\n\{\}]*\}\[[^\n\{\}]*\])",
+            # 'color':       r"(\{[^\n\{\}]*\}\[[^\n\{\}]*\])",
             'link1':       r"(\<https?://[^ ]*\>)",
             'link2':       r"(\[.*\]\([^ ]*(?: \".*\")?\))"
         }
@@ -417,7 +418,7 @@ def inline_parse(line, argv):
             'strike':      r"~(?! )(?P<inside>[^~]*)~"
         },
         2:  {
-            'color':    r"\{(?P<left>[^\n\{\}]*)\}\[(?P<right>[^\n\{\}]*)\]",
+            # 'color':    r"\{(?P<left>[^\n\{\}]*)\}\[(?P<right>[^\n\{\}]*)\]",
             'link1':    r"\<(?P<left>(?P<right>https?://[^ ]*))\>",
             'link2':    r"\[(?P<left>.*)\]\((?P<right>[^ ]*)( \".*\")?\)"
         }
@@ -438,7 +439,7 @@ def inline_parse(line, argv):
             'strike':      (r'\st{',              '}')
         },
         2:  {
-            'color':       (r'\color{',   '}{',   '}'),
+            # 'color':       (r'\color{',   '}{',   '}'),
             'link1':       (r'\href{',    '}{',   '}'),
             'link2':       (r'\href{',    '}{',   '}')
         }
@@ -571,6 +572,8 @@ def main(argv):
                 "{enumerate}",
                 "{xltxtra}",
                 "{soul}",
+                "{graphicx}",
+                "{float}",
                 "{csquotes}",
                 "{dirtytalk}",
                 "{hyperref}",
