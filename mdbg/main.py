@@ -10,152 +10,139 @@ Written by Hadrien, pierrotdu18, and YoPox
 # No convert functions should be implemented here.
 # This module calls convert modules.
 
-# IMPORTS
-
-
-# Others
-import argparse
+from docopt import docopt
 
 # Convert modules
-import md2mdbg
-import mdbg2tex
-import mdbg2html
+import mdbg.md2mdbg as md2mdbg
+import mdbg.mdbg2tex as mdbg2tex
+import mdbg.mdbg2html as mdbg2html
+
+from mdbg.settings import logger
 
 
-# ARGPARSE DATA
+__doc__ = """
+main.py
 
-description = """This is mdbg : a little tool to convert everything
-    (or as anything as we can do) to cool mdbg documents (or other things).
+usage: main.py [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
+                      [--title TITLE] [--date DATE] [--author AUTHOR]
+                      [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
+                      [--roboto] [--tableofcontents] [--minted MINTED]
+                      INPUT
+
+This is mdbg : a little tool to convert everything (or as anything as we can
+do) to cool mdbg documents (or other things).
+
+positional arguments:
+  input                 File in input.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --output OUTPUT, -o OUTPUT
+                        Output file. If not specified, mdbg will wrote it in
+                        input.formatwhere input is the name of the input file
+                        (whithout its extention mdbg recognises it).
+
+Syntax Options:
+  Input options begin with a lowercase, output options begin with an
+  uppercase. Default : -b -T
+
+  -m                    Indicate that the input syntax is markdown.
+  -b                    Indicate that the input syntax is mdbg.
+  -T                    Indicate that the output syntax is LaTeX.
+  -M                    Indicate that the output syntax is mdbg.
+  -H                    Indicate that the output syntax is HTML.
+
+LaTeX options:
+  --title TITLE         Title
+  --date DATE           Date
+  --author AUTHOR       Author(s)
+  --packages PACKAGES   list of additionnal packages with the following syntax
+                        {[options1]{package1},[options2]{package2},...} (none
+                        by default)
+  --documentclass DOCUMENTCLASS
+                        class of the document [default: article]
+  --roboto              Use robotoMono font.
+  --tableofcontents     Display the table of contents. [default: True]
+  --minted MINTED       Minted style, if minted is the wanted syntax engine.
+                        (default=normal) If pygments is not installed, the
+                        option will be ignored. To deactivate this behaviour,
+                        call --minted F-STYLE
+
+Written by YoPox, pierrotdu18 and Hadrien Renaud-Lebret. For more information,
+see https://github.com/YoPox/mdbg .
 """
-epilog = """Written by YoPox, pierrotdu18 and Hadrien Renaud-Lebret.
-For more information, see https://github.com/YoPox/mdbg .
-"""
 
-
-def argparse_use():
-    """Function that configure the argument parser used later in the program execution."""
-    parser = argparse.ArgumentParser(description=description, epilog=epilog)
-
-    parser.add_argument('input', type=argparse.FileType('r'),
-                        help="File in input.")
-
-    parser.add_argument(
-        '--output', '-o', help="Output file. If not specified, mdbg will wrote it in input.format"
-        "where input is the name of the input file (whithout its extention mdbg recognises it).")
-
-    formatInOut = parser.add_argument_group(
-        title="Syntax Options",
-        description="Input options begin with a lowercase, output options begin with an uppercase. "
-        "Default : -mdbg -Tex")
-
-    formatIn = formatInOut.add_mutually_exclusive_group()
-    formatOut = formatInOut.add_mutually_exclusive_group()
-
-    formatIn.add_argument('-md', action="store_true",
-                          help="Indicate that the input syntax is markdown.")
-    formatIn.add_argument('-mdbg', action="store_true",
-                          help="Indicate that the input syntax is mdbg.")
-
-    formatOut.add_argument('-Tex', action="store_true",
-                           help="Indicate that the output syntax is LaTeX.")
-    formatOut.add_argument('-Mdbg', action="store_true",
-                           help="Indicate that the output syntax is mdbg.")
-    formatOut.add_argument('-Html', action="store_true",
-                           help="Indicate that the output syntax is HTML.")
-
-    latexOptions = parser.add_argument_group(title="LaTeX options")
-    latexOptions.add_argument('--title', help="Title")
-    latexOptions.add_argument('--date', help="Date")
-    latexOptions.add_argument('--author', help="Author(s)")
-    latexOptions.add_argument(
-        '--packages', help="list of additionnal packages with the following syntax "
-        "{[options1]{package1},[options2]{package2},...} (none by default)")
-    latexOptions.add_argument('--documentclass', help='class of the document',
-                              default='article')
-    latexOptions.add_argument('--roboto', help="Use robotoMono font.",
-                              action="store_true")
-    latexOptions.add_argument('--tableofcontents', action="store_false",
-                              help="Display the table of contents. (default=True)", default=True)
-    latexOptions.add_argument(
-        '--minted', default=False,
-        help="Minted style, if minted is the wanted syntax engine. (default=normal) "
-        "If pygments is not installed, the option will be ignored. To deactivate this behaviour, "
-        "call --minted F-STYLE"
-    )
-
-    return parser
 
 
 def output_treatment(args):
-    """Function to analyse the output."""
-    if not args.output:
+    """Function to analyze the output."""
+    if not args['--output']:
         ext = 'tex'
-        if args.Html:
+        if args['-H']:
             ext = 'html'
-        elif args.Mdbg:
+        elif args['-M']:
             ext = 'mdbg'
-        if args.input.name[-2:] == 'md':
-            args.output = args.input.name[:-2] + ext
-        elif args.input.name[-4:] == 'mdbg':
-            args.output = args.input.name[:-4] + ext
+        if args['INPUT'][-2:] == 'md':
+            args['--output'] = args['INPUT'][:-2] + ext
+        elif args['INPUT'][-4:] == 'mdbg':
+            args['--output'] = args['INPUT'][:-4] + ext
         else:
-            args.output = args.input.name + "." + ext
+            args['--output'] = args['INPUT'] + "." + ext
     return args
 
 
 def minted_treatment(args):
-    """Function to analyse the minted option.
+    """Function to analyze the minted option.
 
-    If pygments is not installed, the option is disactivated.
+    If pygments is not installed, the option is deactivated.
     Otherwise, anything goes on normally.
     """
     if not mdbg2tex.PYGMENTS_AVAILABLE:
-        args.minted = False
-        print('Hum, --minted ignored, you need Pygments installed, see the help or the doc.')
+        args['--minted'] = False
+        logger.error('Hum, --minted ignored, you need Pygments installed, see the help or the doc.')
     return args
 
 
+
 # MAIN
-if __name__ == '__main__':
-    arg_parser = argparse_use()
-    args = arg_parser.parse_args()
+def main():
+    # arg_parser = argparse_use()
+    args = docopt(__doc__) # arg_parser.parse_args()
 
-    print("Input : ", args.input.name)
+    logger.info("Input : " + args['INPUT'])
 
-    if args.minted:
+    if args['--minted']:
         args = minted_treatment(args)
-    print('minted : ', args.minted)
+    logger.info('minted : {}'.format(bool(args['--minted'])))
 
     args = output_treatment(args)
-    print("Output : ", args.output)
+    logger.info("Output : " + args['--output'])
 
     argv = {
-        'input': args.input,
-        'output': args.output,
-        'documentclass': args.documentclass,
-        'tableofcontents': args.tableofcontents,
-        'date': args.date,
-        'author': args.author,
-        'title': args.title,
-        'roboto': args.roboto,
-        'packages': args.packages,
-        'minted': args.minted,
-        'print_help': arg_parser.print_help,
-        'print_usage': arg_parser.print_usage,
+        'input': args['INPUT'],
+        'output': args['--output'],
+        'documentclass': args['--documentclass'],
+        'tableofcontents': args['--tableofcontents'],
+        'date': args['--date'],
+        'author': args['--author'],
+        'title': args['--title'],
+        'roboto': args['--roboto'],
+        'packages': args['--packages'],
+        'minted': args['--minted'],
+        'print_help': args['--help'],
     }
-    # Useful for debugging
-    # print(argv)
 
-    if args.md:
+    if args['-m']:
         argv2 = dict(argv)
-        argv2['output'] = '.tmp.mdbg'
-        md2mdbg.main(argv2)
-        argv['input'] = open(argv2['output'], 'r')
-        args.mdbg = True
-
-    if args.mdbg:
-        if args.Html:
+        argv2['--output'] = '.tmp.mdbg'
+        md2mdbg.convert_file(argv2['INPUT'], argv2['--output'])
+        argv['INPUT'] = open(argv2['--output'], 'r')
+    else:
+        if args['-H']:
             mdbg2html.main(argv)
         else:  # default option : -Tex
             mdbg2tex.main(argv)
         # if args.Mdbg: Cas chelou que je traiterai plus tard.
+
+if __name__ == '__main__':
+    main()

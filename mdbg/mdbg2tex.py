@@ -540,7 +540,7 @@ def main(argv):
     output.seek(0)
 
     # Reading input file
-    inputFile = argv['input']
+    inputFile = open(argv['input'], 'r')
     contents = inputFile.read()
 
     # Writing to output file

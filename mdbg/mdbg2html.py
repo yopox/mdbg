@@ -434,7 +434,8 @@ def main(argv):
     output.seek(0)
 
     # Reading the input file
-    contents = argv['input'].read()
+    with open(argv['input'], 'r') as inputFile:
+        contents = inputFile.read()
 
     # Writing in the output file
     # Document class
