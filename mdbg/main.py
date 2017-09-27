@@ -26,7 +26,7 @@ main.py
 usage: main.py [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
                       [--title TITLE] [--date DATE] [--author AUTHOR]
                       [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
-                      [--roboto] [--tableofcontents] [--minted MINTED]
+                      [--roboto] [--disabletoc] [--minted MINTED]
                       INPUT
 
 This is mdbg : a little tool to convert everything (or as anything as we can
@@ -62,7 +62,7 @@ LaTeX options:
   --documentclass DOCUMENTCLASS
                         class of the document [default: article]
   --roboto              Use robotoMono font.
-  --tableofcontents     Display the table of contents. [default: True]
+  --disabletoc          Do not display the table of contents
   --minted MINTED       Minted style, if minted is the wanted syntax engine.
                         (default=normal) If pygments is not installed, the
                         option will be ignored. To deactivate this behaviour,
@@ -118,11 +118,12 @@ def main():
     args = output_treatment(args)
     logger.info("Output : " + args['--output'])
 
+
     argv = {
         'input': args['INPUT'],
         'output': args['--output'],
         'documentclass': args['--documentclass'],
-        'tableofcontents': args['--tableofcontents'],
+        'tableofcontents': not bool(args['--disabletoc']),
         'date': args['--date'],
         'author': args['--author'],
         'title': args['--title'],
