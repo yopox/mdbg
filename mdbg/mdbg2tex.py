@@ -589,7 +589,7 @@ def main(argv):
         output.write(r"\usepackage" + package + '\n')
         if 'tikz' in package:
             # TikZ libraries for trees
-            output.write("\\usetikzlibrary{graphs, graphdrawing, graphs.standard, quotes, arrows.meta}\n"
+            output.write("\\usetikzlibrary{automata, graphs, graphdrawing, graphs.standard, quotes, arrows.meta, positioning}\n"
                          "\\usegdlibrary{trees, force, layered}\n")
         elif 'geometry' in package:
             # Changing the margins
