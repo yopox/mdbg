@@ -18,11 +18,11 @@ This will make the `mdbg` command available :
 
 ```sh
 > mdbg
-usage: main.py [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
-                      [--title TITLE] [--date DATE] [--author AUTHOR]
-                      [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
-                      [--roboto] [--disabletoc] [--minted MINTED]
-                      INPUT
+usage: mdbg [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
+                 [--title TITLE] [--date DATE] [--author AUTHOR]
+                 [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
+                 [--roboto] [--disabletoc] [--minted MINTED]
+                 INPUT
 ```
 
 To make things easier, you can create a bash function in your `~/.bash_profile` (for example) :

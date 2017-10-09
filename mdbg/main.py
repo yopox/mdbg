@@ -2,7 +2,7 @@
 
 Little tool to convert everything (or as anything as we can do)
 to cool mdbg documents (or other things).
-Written by Hadrien, pierrotdu18, and YoPox
+Written by Hadrien, pierrotdu18, and yopox
 """
 # -*- coding: utf-8 -*-
 
@@ -23,11 +23,11 @@ from mdbg.settings import logger
 __doc__ = """
 main.py
 
-usage: main.py [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
-                      [--title TITLE] [--date DATE] [--author AUTHOR]
-                      [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
-                      [--roboto] [--disabletoc] [--minted MINTED]
-                      INPUT
+usage: mdbg [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
+                 [--title TITLE] [--date DATE] [--author AUTHOR]
+                 [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
+                 [--roboto] [--disabletoc] [--minted MINTED]
+                 INPUT
 
 This is mdbg : a little tool to convert everything (or as anything as we can
 do) to cool mdbg documents (or other things).
@@ -68,8 +68,8 @@ LaTeX options:
                         option will be ignored. To deactivate this behaviour,
                         call --minted F-STYLE
 
-Written by YoPox, pierrotdu18 and Hadrien Renaud-Lebret. For more information,
-see https://github.com/YoPox/mdbg .
+Written by yopox, pierrotdu18 and Hadrien Renaud-Lebret. For more information,
+see https://github.com/yopox/mdbg .
 """
 
 
