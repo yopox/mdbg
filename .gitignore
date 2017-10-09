@@ -4,3 +4,5 @@
 *.tex
 **/__pycache__/**
 **/.tmp*
+*.egg-info
+mdbg/log.txt

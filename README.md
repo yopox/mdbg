@@ -4,11 +4,53 @@ Mardown BG (_.mdbg_) is an improvement of the existing [Mardown](https://fr.wiki
 
 It provides nice features which make it possible to generate a fresh, correct and nice _.tex_ document.
 
-# Syntax
+## About
 
-## Markdown-flavoured
+### Usage
 
-### Headers
+You can install mdbg easily with pip :
+
+```sh
+pip install -e .
+```
+
+This will make the `mdbg` command available :
+
+```sh
+> mdbg
+usage: main.py [-h] [--output OUTPUT] [-m | -b] [-T | -M | -H]
+                      [--title TITLE] [--date DATE] [--author AUTHOR]
+                      [--packages PACKAGES] [--documentclass DOCUMENTCLASS]
+                      [--roboto] [--disabletoc] [--minted MINTED]
+                      INPUT
+```
+
+To make things easier, you can create a bash function in your `~/.bash_profile` (for example) :
+
+```sh
+function cpbg {
+	mdbg $1.mdbg --title="$2"
+	lualatex --shell-escape $1.tex
+	lualatex --shell-escape $1.tex
+	rm $1.aux $1.log $1.out $1.toc rm $1.tex
+	open $1.pdf
+	}
+```
+
+### Atom packages
+
+mdbg comes with Atom support with these two packages :
+
+1. [language-mdbg](https://www.github.com/yopox/language-mdbg) provides syntax highlighting
+2. [mdbg-snippets](https://www.github.com/yopox/mdbg-snippets) provides autocompletion
+
+* * *
+
+## Syntax
+
+### Markdown-flavoured
+
+#### Headers
 
 Like in markdown.
 
@@ -21,7 +63,7 @@ Like in markdown.
 ###### H6
 ```
 
-#### Non numbered sections
+##### Non numbered sections
 
 For non enumerated sections :
 
@@ -35,11 +77,11 @@ For non enumerated sections :
 ```
 
 
-### Emphasis
+#### Emphasis
 
 Translations :
 
-#### Bold
+##### Bold
 
 In markdown :
 
@@ -53,13 +95,13 @@ In mdbg :
 *bold*
 ```
 
-#### Underline
+##### Underline
 
 ```mdbg
 _underline_
 ```
 
-#### Italic
+##### Italic
 
 In markdown :
 
@@ -73,7 +115,7 @@ In mdbg :
 %italic%
 ```
 
-#### Strikethrough
+##### Strikethrough
 
 In markdown :
 
@@ -87,7 +129,7 @@ In mdbg :
 ~strikethrough~
 ```
 
-### Lists
+#### Lists
 
 Small changes have been made.
 
@@ -114,7 +156,7 @@ and an enumerated list :
 
 The indentations can be four spaces or a tabulation but each item has to be idented.
 
-### Links
+#### Links
 
 ```mdbg
 [text for link](https://www.google.com)
@@ -122,11 +164,11 @@ The indentations can be four spaces or a tabulation but each item has to be iden
 [text for link](https://www.google.com "title for link")
 ```
 
-### Code
+#### Code
 
 Like in Markdown.
 
-### Tables
+#### Tables
 
 Like Markdown, without the 2nd line.
 
@@ -158,11 +200,11 @@ For example one possible table would be :
 | C31 | C32 | C33 |
 ```
 
-## New !
+### New !
 
-### Trees
+#### Trees
 
-#### Basic binary tree
+##### Basic binary tree
 
 Description :
   - Command : `![TREE]!`
@@ -176,14 +218,14 @@ Description :
 
 If you want to draw an non strictly binary tree, you can write `L ()` for an empty leaf
 
-#### Non binary trees
+##### Non binary trees
 
 Command : `![nTREE]!`
 
 ```mdbg
 ![nTREE "A" -- {"B" -- {"H" -- {"N", "O"}, "I", "J"}, "C", "D", "E" -- {"K" -- "P", "L" -- "Q"}, "F", "G" -- "M"}]!
 ```
-### Graphs
+#### Graphs
 
 You can draw graphs with a very simple syntax (the same as nTREE syntax).
 
@@ -199,9 +241,9 @@ See pgfmanual for more information about the syntax.
 
 You can also base your graph on the example given in the section **Examples**
 
-### New text features
+#### New text features
 
-#### Superscript
+##### Superscript
 
 You can use text in superscript :
 
@@ -209,7 +251,7 @@ You can use text in superscript :
 We live in Paris, in the 5^{th}
 ```
 
-#### Subscript
+##### Subscript
 
 You can use text in subscript :
 
@@ -217,7 +259,7 @@ You can use text in subscript :
 This is a normal text_{this one is subscripted}
 ```
 
-#### Footnotes
+##### Footnotes
 
 This is how to use footnotes :
 
@@ -225,7 +267,7 @@ This is how to use footnotes :
 I never work ***{almost}
 ```
 
-#### Colored texts
+##### Colored texts
 
 How to use colored texts :
 
@@ -235,7 +277,7 @@ I love {red}[red] and {green}[blue witten in green] !
 
 A list of all possible colors is given at the end of this readme.
 
-### Center environnement
+#### Center environnement
 
 You can center some text or some figure with this :
 ```mdbg
@@ -244,15 +286,15 @@ You can center some text or some figure with this :
 )))
 ```
 
-### Miscellaneous
+#### Miscellaneous
 
 Add a `!` at the begining of a line to have a `\noindent` before this line in the _LaTeX_ generated file.
 
 Add a `/` at the end of a line to have a line break.
 
-# Examples
+## Examples
 
-## Trees
+### Trees
 
 The command `![TREE R 1 N 2 F 3 F 4 F 5]!` produces the following result in LaTeX :
 
@@ -262,7 +304,7 @@ the command `![nTREE A -- {B -- {H -- {N, O}, I, J}, C, D, E -- {K -- P, L -- Q}
 
 ![Multiple tree](http://www.mirari.fr/fi6Z)
 
-## Code
+### Code
 
 Those lines :
 ```md
@@ -291,7 +333,7 @@ Will produce this :
 
 ![Some code in ocaml](http://www.mirari.fr/ogMn)
 
-## Graphs
+### Graphs
 
 ```mdbg
 !!layered layout
@@ -315,11 +357,11 @@ Will produce this :
 
 ![Graph example](http://www.mirari.fr/EbE6)
 
-# Comprehensive list of colors
+## Comprehensive list of colors
 
 ![Colors](http://www.mirari.fr/VUmg)
 
-# pgfmanual
+## pgfmanual
 
 [Here](http://ftp.oleane.net/pub/CTAN/graphics/pgf/base/doc/pgfmanual.pdf) is a link of a recent and accurate version of pgf-tikz manual.
 

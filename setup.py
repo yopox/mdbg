@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import mdbg
 
-setup(name='Markdown BG',
+setup(name='MDBG',
       version=mdbg.__version__,
       description='Markdown BG is an improvement of the existing Mardown language.',
       long_description=open('README.md').read(),

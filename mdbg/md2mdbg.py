@@ -47,6 +47,7 @@ def table_parse(matchObj):
     # Catching matchObj infos
     __table = matchObj.group(0)
     table = ''
+
     # Suppressing line of '----'
     for line in re.findall(r"(?:^|(?<=\n)).*", __table):
         if line != '' and re.sub(r"[-:\n \|]", '', line) != '':
@@ -57,6 +58,7 @@ def table_parse(matchObj):
                    lambda x: inline_parse(x), table)
 
     return table
+
 
 # Inline parsing
 
@@ -223,7 +225,7 @@ def convert_file(input_file, output_file):
     :param output_file: The output file name.
 
     :type input: str
-    :type output: str 
+    :type output: str
     """
     with open(input_file, 'r') as inp:
         with open(output_file, 'w') as outp:
