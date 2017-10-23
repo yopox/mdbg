@@ -45,10 +45,10 @@ SublimeText or Atom.io :
 .SUFFIXES:
 
 COMP = mdbg
-OUT = compte_rendu
+OUT = a_file
 TITLE = "SIG 1"
 PACKAGE = "{{MyPack2}}"
-AUTHOR = "Binôme A11 \\\\ SIMON Léo, LEVY--FALK Hugo"
+AUTHOR = "Me"
 DOCUMENTCLASS = "report"
 
 all:
