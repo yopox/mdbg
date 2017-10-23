@@ -37,6 +37,28 @@ function cpbg {
 	}
 ```
 
+Alternately, you can use a Makefile like this one to compile from IDEs like
+SublimeText or Atom.io :
+
+```makefile
+.PHONY:
+.SUFFIXES:
+
+COMP = mdbg
+OUT = compte_rendu
+TITLE = "SIG 1"
+PACKAGE = "{{MyPack2}}"
+AUTHOR = "Binôme A11 \\\\ SIMON Léo, LEVY--FALK Hugo"
+DOCUMENTCLASS = "report"
+
+all:
+	$(COMP) $(OUT).mdbg --title $(TITLE) --packages $(PACKAGE) --date \\today --documentclass $(DOCUMENTCLASS) --author $(AUTHOR)
+	lualatex --shell-escape $(OUT).tex
+	lualatex --shell-escape $(OUT).tex
+	rm $(OUT).aux $(OUT).log $(OUT).out $(OUT).toc
+	rm $(OUT).tex
+```
+
 ### Atom packages
 
 mdbg comes with Atom support with these two packages :
