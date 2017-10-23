@@ -46,7 +46,7 @@ SublimeText or Atom.io :
 
 COMP = mdbg
 OUT = a_file
-TITLE = "SIG 1"
+TITLE = "An inspiring title."
 PACKAGE = "{{MyPack2}}"
 AUTHOR = "Me"
 DOCUMENTCLASS = "report"
