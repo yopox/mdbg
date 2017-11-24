@@ -363,6 +363,6 @@ Will produce this :
 
 ## pgfmanual
 
-[Here](http://ftp.oleane.net/pub/CTAN/graphics/pgf/base/doc/pgfmanual.pdf) is a link of a recent and accurate version of pgf-tikz manual.
+[Here](http://mirror.hmc.edu/ctan/graphics/pgf/base/doc/pgfmanual.pdf) is a link of a recent and accurate version of pgf-tikz manual.
 
 It is used for trees and graphs in Markdown BG.
